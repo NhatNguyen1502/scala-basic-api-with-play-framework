@@ -1,6 +1,7 @@
 package controllers
 
 import dtos.request.user.CreateUserRequestDto
+import dtos.response.{ErrorResponse, SuccessResponse}
 
 import javax.inject._
 import play.api.mvc._
@@ -15,29 +16,37 @@ class UserController @Inject()(
                                 userService: UserService
                               )(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
-  /**
-   This action handles the creation of a new user.
-   It expects a JSON request body and attempts to parse it into CreateUserRequestDto.
-   - If the JSON is invalid (fails validation): return 400 BadRequest with error details.
-   - If the JSON is valid:
-    - Call userService.createUser with the parsed request data.
-    - When the service returns the created user, respond with 201 Created and the user data as JSON.
-  */
   def createUser: Action[JsValue] = Action.async(parse.json) { request =>
     request.body.validate[CreateUserRequestDto].fold(
       // Handle validation errors
-      errors => Future.successful(BadRequest(Json.obj("error" -> JsError.toJson(errors)))),
+      errors => {
+        val errorJson = JsError.toJson(errors)
+        val errorResponse = ErrorResponse(
+          message = "Validation failed",
+          errors = Some(errorJson)
+        )
+        Future.successful(BadRequest(Json.toJson(errorResponse)))
+      },
 
       // Validation passed → call userService
       user =>
         userService.createUser(user).map { createdUser =>
-          // Return 201 Created with the response DTO as JSON
-          Created(Json.toJson(createdUser))
+          val successResponse = SuccessResponse(
+            message = "User created successfully",
+            data = Some(createdUser)
+          )
+          Created(Json.toJson(successResponse))
         }
     )
   }
 
   def getListUsers: Action[AnyContent] = Action.async {
-    userService.getAllUsers.map(users => Ok(Json.toJson(users)))
+    userService.getAllUsers.map { users =>
+      val successResponse = SuccessResponse(
+        message = "Fetched all users",
+        data = Some(users)
+      )
+      Ok(Json.toJson(successResponse))
+      }
   }
 }

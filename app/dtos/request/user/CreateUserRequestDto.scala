@@ -3,7 +3,7 @@ package dtos.request.user
 import constants.RegexConstants.EmailRegex
 import play.api.libs.functional.syntax._
 import play.api.libs.json.{JsPath, JsonValidationError, Reads}
-import validations.CustomValidators.{minLength, minValue, nonEmpty, optionalWith, requiredField}
+import validations.CustomValidators.{minLength, nonEmpty, optionalWith, requiredField}
 
 case class CreateUserRequestDto(
                                  email: String,
@@ -47,7 +47,11 @@ object CreateUserRequestDto {
       "Password is required"
     ) and
     (JsPath \ "age").read[Option[Int]](
-      optionalWith(minValue(1, "Age must be at least 1"))
+      optionalWith(
+        Reads.of[Int]
+          .filter(JsonValidationError("Age must be at least 1"))(_ >= 1)
+          .filter(JsonValidationError("Age must be at most 100"))(_ <= 100)
+      )
     )
   )(CreateUserRequestDto.apply _)
 }

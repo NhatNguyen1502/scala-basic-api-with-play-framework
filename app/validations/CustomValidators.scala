@@ -37,20 +37,6 @@ object CustomValidators {
     Reads.StringReads.filter(JsonValidationError(msg))(_.matches(pattern))
 
   /**
-   * Validates that a numeric value is greater than or equal to the specified minimum.
-   *
-   * @param min The minimum value.
-   * @param msg The error message to display if the value is less than `min`.
-   * @param r   Implicit `Reads[T]` for the numeric type.
-   * @tparam T The numeric type (e.g., Int, Long, Double).
-   * @return A `Reads[T]` that fails if the value is less than `min`.
-   */
-  def minValue[T: Numeric](min: T, msg: String)(implicit r: Reads[T]): Reads[T] = {
-    val num = implicitly[Numeric[T]]
-    r.filter(JsonValidationError(msg))(v => num.gteq(v, min))
-  }
-
-  /**
    * Wraps a base `Reads[T]` validator with `optionWithNull` to support optional fields.
    *
    * @param baseReads The validator to apply when the value is present.
