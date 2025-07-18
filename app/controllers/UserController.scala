@@ -15,12 +15,14 @@ class UserController @Inject()(
                                 userService: UserService
                               )(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
-  // This action handles the creation of a new user.
-  // It expects a JSON request body and attempts to parse it into CreateUserRequestDto.
-  // - If the JSON is invalid (fails validation): return 400 BadRequest with error details.
-  // - If the JSON is valid:
-  //   - Call userService.createUser with the parsed request data.
-  //   - When the service returns the created user, respond with 201 Created and the user data as JSON.
+  /**
+   This action handles the creation of a new user.
+   It expects a JSON request body and attempts to parse it into CreateUserRequestDto.
+   - If the JSON is invalid (fails validation): return 400 BadRequest with error details.
+   - If the JSON is valid:
+    - Call userService.createUser with the parsed request data.
+    - When the service returns the created user, respond with 201 Created and the user data as JSON.
+  */
   def createUser: Action[JsValue] = Action.async(parse.json) { request =>
     request.body.validate[CreateUserRequestDto].fold(
       // Handle validation errors
