@@ -60,6 +60,6 @@ object ErrorFormatter {
    */
   def formatAppException(error: AppException): JsValue = Json.obj(
     "success" -> false,
-    "message" -> error.message
+    "message" -> error.errorCode.message
   )
 }

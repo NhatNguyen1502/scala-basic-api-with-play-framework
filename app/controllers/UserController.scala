@@ -1,5 +1,6 @@
 package controllers
 
+import Exceptions.AppException
 import dtos.request.user.CreateUserRequestDto
 import dtos.response.{ApiResponse, FieldError}
 import utils.json.WritesExtras._
@@ -45,12 +46,12 @@ class UserController @Inject()(
           Created(Json.toJson(response))
         }.recover { // recover is a function of Future to resolve exception
           // recover is a partial function so we need to use Case to solve the exception matching
-          case ex: Exception =>
+          case ex: AppException =>
             val response = ApiResponse[JsValue](
               success = false,
               message = ex.getMessage
             )
-            InternalServerError(Json.toJson(response))
+            Results.Status(ex.httpStatus)(Json.toJson(response))
         }
       }
     )

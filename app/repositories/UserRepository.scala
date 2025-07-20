@@ -22,6 +22,10 @@ class UserRepository @Inject()(
     db.run(users += user) // Future[Int] . success = 1, fail = 0
       .map(_ => user) // convert to Future[User]
   }
+  def existByEmail(email: String): Future[Boolean] = {
+    val query = users.filter(_.email === email).exists.result
+    db.run(query)
+  }
 
   def list(): Future[Seq[User]] = db.run(users.result)
 }
