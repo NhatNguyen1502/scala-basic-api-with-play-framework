@@ -17,7 +17,6 @@ class UserService @Inject()(userRepository: UserRepository)(implicit ec: Executi
       password = request.password,
       age = request.age
     )
-    println(user.toString)
     userRepository.create(user).map(UserResponseDto.fromUser)
   }
 

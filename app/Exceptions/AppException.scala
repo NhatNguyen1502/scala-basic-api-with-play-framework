@@ -1,5 +1,5 @@
 package Exceptions
 
-sealed trait AppError {
+sealed trait AppException {
   def message: String
 }
