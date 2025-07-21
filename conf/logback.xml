@@ -10,6 +10,7 @@
   <import class="ch.qos.logback.core.FileAppender"/>
   <import class="ch.qos.logback.core.ConsoleAppender"/>
 
+  <!-- Write log into file -->
   <appender name="FILE" class="FileAppender">
     <file>${application.home:-.}/logs/application.log</file>
     <encoder class="PatternLayoutEncoder">
@@ -18,6 +19,7 @@
     </encoder>
   </appender>
 
+  <!-- Write log into console -->
   <appender name="STDOUT" class="ConsoleAppender">
     <!--
          On Windows, enabling Jansi is recommended to benefit from color code interpretation on DOS command prompts,
@@ -46,5 +48,13 @@
     <appender-ref ref="ASYNCFILE"/>
     <appender-ref ref="ASYNCSTDOUT"/>
   </root>
+
+  <!-- Ghi log cho ứng dụng -->
+  <logger name="play" level="INFO"/>
+  <logger name="application" level="DEBUG"/>
+
+  <!-- Ghi log SQL của Slick -->
+  <logger name="slick.jdbc.JdbcBackend.statement" level="DEBUG"/>
+  <logger name="slick.jdbc.JdbcBackend.parameter" level="DEBUG"/>
 
 </configuration>

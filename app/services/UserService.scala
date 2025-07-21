@@ -40,9 +40,5 @@ class UserService @Inject() (userRepository: UserRepository)(implicit
     } yield UserResponseDto.fromUser(savedUser)
   }
 
-  def getAllUsers: Future[Seq[UserResponseDto]] = userRepository
-    .list() //  Future[Seq[User]]
-    .map(
-      _.map(UserResponseDto.fromUser)
-    ) // .map(...) : Future, _.map(UserResponseDto.fromUser): Seq[User]
+  def getAllUsers: Future[Seq[UserResponseDto]] = userRepository.list()
 }

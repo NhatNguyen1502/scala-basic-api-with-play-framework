@@ -1,11 +1,12 @@
 package repositories
 
-import slick.jdbc.JdbcProfile
+import dtos.response.user.UserResponseDto
+import models.{User, UserTable}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import slick.jdbc.JdbcProfile
 
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
-import models.{User, UserTable}
 
 @Singleton
 class UserRepository @Inject() (
@@ -29,5 +30,14 @@ class UserRepository @Inject() (
     db.run(query)
   }
 
-  def list(): Future[Seq[User]] = db.run(users.result)
+  def list(): Future[Seq[UserResponseDto]] = {
+    db.run(
+      users
+        .map(
+          u => (u.id, u.email, u.age, u.isActive, u.createdAt, u.updatedAt)
+        ) // Projection
+        .sortBy(_._5.desc)
+        .result
+    ).map(_.map(UserResponseDto.tupled))
+  }
 }
