@@ -5,6 +5,7 @@ import models.{User, UserTable}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
+import java.util.UUID
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -38,6 +39,18 @@ class UserRepository @Inject() (
         ) // Projection
         .sortBy(_._5.desc)
         .result
+    ).map(_.map(UserResponseDto.tupled))
+  }
+
+  def findById(id: UUID): Future[Option[UserResponseDto]] = {
+    db.run(
+      users
+        .filter(_.id === id)
+        .map(
+          u => (u.id, u.email, u.age, u.isActive, u.createdAt, u.updatedAt)
+        )
+        .result
+        .headOption
     ).map(_.map(UserResponseDto.tupled))
   }
 }

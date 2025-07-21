@@ -3,13 +3,12 @@ package controllers
 import Exceptions.AppException
 import dtos.request.user.CreateUserRequestDto
 import dtos.response.{ApiResponse, FieldError}
+import play.api.libs.json._
+import play.api.mvc._
+import services.UserService
 import utils.json.WritesExtras._
 
 import javax.inject._
-import play.api.mvc._
-import play.api.libs.json._
-import services.UserService
-
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
@@ -77,5 +76,27 @@ class UserController @Inject() (
         )
         Ok(Json.toJson(response))
     }
+  }
+
+  def getUserById(id: String): Action[AnyContent] = Action.async {
+    userService
+      .findById(id)
+      .map {
+        user =>
+          val response = ApiResponse(
+            success = true,
+            message = "User fetched",
+            data = Some(Json.toJson(user))
+          )
+          Ok(Json.toJson(response))
+      }
+      .recover {
+        case ex: AppException =>
+          val response = ApiResponse[JsValue](
+            success = false,
+            message = ex.getMessage
+          )
+          Results.Status(ex.httpStatus)(Json.toJson(response))
+      }
   }
 }

@@ -9,3 +9,4 @@ GET     /assets/*file               controllers.Assets.versioned(path="/public",
 # Users API
 POST    /api/users  controllers.UserController.createUser()
 GET     /api/users  controllers.UserController.getListUsers
+GET     /api/users/:id  controllers.UserController.getUserById(id: String)

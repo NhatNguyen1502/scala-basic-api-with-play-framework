@@ -8,8 +8,10 @@ import org.mindrot.jbcrypt.BCrypt
 import play.api.http.Status
 import repositories.UserRepository
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class UserService @Inject() (userRepository: UserRepository)(implicit
@@ -41,4 +43,22 @@ class UserService @Inject() (userRepository: UserRepository)(implicit
   }
 
   def getAllUsers: Future[Seq[UserResponseDto]] = userRepository.list()
+
+  def findById(id: String): Future[UserResponseDto] = {
+    Try(UUID.fromString(id)) match {
+      case Success(uuid) =>
+        userRepository.findById(uuid).flatMap {
+          case Some(userDto) => Future.successful(userDto)
+          case None          =>
+            Future.failed(
+              new AppException(ErrorCode.UserNotFound, Status.NOT_FOUND)
+            )
+        }
+
+      case Failure(_) =>
+        Future.failed(
+          new AppException(ErrorCode.InvalidUUID, Status.BAD_REQUEST)
+        )
+    }
+  }
 }

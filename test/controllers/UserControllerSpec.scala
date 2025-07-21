@@ -10,17 +10,9 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Play.materializer
-import play.api.http.Status.{BAD_REQUEST, CONFLICT, CREATED, OK}
+import play.api.http.Status.{BAD_REQUEST, CONFLICT, CREATED, NOT_FOUND, OK}
 import play.api.libs.json.{JsValue, Json}
-import play.api.test.Helpers.{
-  GET,
-  POST,
-  call,
-  contentAsJson,
-  defaultAwaitTimeout,
-  status,
-  stubControllerComponents
-}
+import play.api.test.Helpers.{GET, POST, call, contentAsJson, defaultAwaitTimeout, status, stubControllerComponents}
 import play.api.test.{FakeRequest, Injecting}
 import repositories.UserRepository
 import services.UserService
@@ -119,6 +111,7 @@ class UserControllerSpec
   }
 
   "UserController#getListUsers" should {
+
     "return 200 OK with user list in JSON" in {
       val users = Seq(
         UserResponseDto(
@@ -139,8 +132,62 @@ class UserControllerSpec
 
       val json = contentAsJson(result)
       (json \ "success").as[Boolean] mustBe true
-      (json \ "message").as[String] must include("List users")
-      (json \ "data").asOpt[JsValue] mustBe defined
+      (json \ "message").as[String] must include("List users fetched")
+      (json \ "data").as[Seq[UserResponseDto]] mustBe users
+    }
+  }
+
+  "UserController#getUserById" should {
+
+    "return 200 OK with user in JSON" in {
+      val userId = UUID.randomUUID();
+
+      val user =
+        UserResponseDto(
+          id = userId,
+          email = "test@example.com",
+          age = Some(25),
+          isActive = true,
+          createdAt = LocalDateTime.now(),
+          updatedAt = LocalDateTime.now()
+        )
+
+      when(mockUserRepository.findById(userId)).thenReturn(Future.successful(Some(user)))
+
+      val result = controller.getUserById(userId.toString).apply(FakeRequest(GET, s"/api/users/${userId}"))
+
+      status(result) mustBe OK
+
+      val json = contentAsJson(result)
+      (json \ "success").as[Boolean] mustBe true
+      (json \ "message").as[String] mustBe ("User fetched")
+      (json \ "data").as[UserResponseDto] mustBe user
+    }
+
+    "return 404 NotFound with user not found" in {
+      val userId = UUID.randomUUID();
+
+      when(mockUserRepository.findById(userId)).thenReturn(Future.successful(None))
+
+      val result = controller.getUserById(userId.toString).apply(FakeRequest(GET, s"/api/users/${userId}"))
+
+      status(result) mustBe NOT_FOUND
+
+      val json = contentAsJson(result)
+      (json \ "success").as[Boolean] mustBe false
+      (json \ "message").as[String] mustBe ("User not found")
+    }
+
+    "return 400 BadRequest with user not found" in {
+      val userId = "NotUUID";
+
+      val result = controller.getUserById(userId.toString).apply(FakeRequest(GET, s"/api/users/${userId}"))
+
+      status(result) mustBe BAD_REQUEST
+
+      val json = contentAsJson(result)
+      (json \ "success").as[Boolean] mustBe false
+      (json \ "message").as[String] mustBe ("Id must be UUID")
     }
   }
 }
