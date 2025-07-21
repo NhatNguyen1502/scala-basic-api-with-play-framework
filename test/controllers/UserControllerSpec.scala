@@ -2,7 +2,7 @@ package controllers
 
 import Exceptions.{AppException, ErrorCode}
 import dtos.request.user.CreateUserRequestDto
-import dtos.response.user.UserResponseDto
+import models.User
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatestplus.mockito.MockitoSugar
@@ -11,15 +11,9 @@ import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Play.materializer
 import play.api.http.Status.{BAD_REQUEST, CONFLICT, CREATED}
 import play.api.libs.json.{JsValue, Json}
-import play.api.test.Helpers.{
-  POST,
-  call,
-  contentAsJson,
-  defaultAwaitTimeout,
-  status,
-  stubControllerComponents
-}
+import play.api.test.Helpers.{POST, call, contentAsJson, defaultAwaitTimeout, status, stubControllerComponents}
 import play.api.test.{FakeRequest, Injecting}
+import repositories.UserRepository
 import services.UserService
 
 import java.time.LocalDateTime
@@ -37,23 +31,29 @@ class UserControllerSpec
   "UserController#createUser" should {
 
     "return 201 Created when user is created successfully" in {
-      val mockUserService = mock[UserService]
+      val mockUserRepository = mock[UserRepository]
+      val userService = new UserService(mockUserRepository)
+
       val controller =
-        new UserController(stubControllerComponents(), mockUserService)
+        new UserController(stubControllerComponents(), userService)
 
       val requestDto =
         CreateUserRequestDto("test@email.com", "123456", Some(25))
-      val responseDto = UserResponseDto(
+
+      val newUser = User(
         UUID.randomUUID(),
         "test@email.com",
+        "12345",
         Some(25),
         isActive = true,
         LocalDateTime.now(),
         LocalDateTime.now()
       )
 
-      when(mockUserService.createUser(any()))
-        .thenReturn(Future.successful(responseDto))
+      when(mockUserRepository.existByEmail(any()))
+        .thenReturn(Future.successful(false))
+      when(mockUserRepository.create(any()))
+        .thenReturn(Future.successful(newUser))
 
       val requestBody: JsValue = Json.toJson(requestDto)
       val request = FakeRequest(POST, "/api/users")

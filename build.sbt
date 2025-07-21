@@ -10,6 +10,8 @@ scalaVersion := "2.13.16"
 
 enablePlugins(ScalafmtPlugin)
 
+coverageExcludedPackages := ".*(dtos|models|repositories|utils|router).*"
+
 libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
 
 libraryDependencies ++= Seq(
