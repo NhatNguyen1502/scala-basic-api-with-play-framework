@@ -2,13 +2,8 @@ package dtos.request.user
 
 import constants.RegexConstants.EmailRegex
 import play.api.libs.functional.syntax._
-import play.api.libs.json.{JsPath, JsonValidationError, Reads}
-import validations.CustomValidators.{
-  minLength,
-  nonEmpty,
-  optionalWith,
-  requiredField
-}
+import play.api.libs.json.{JsPath, Json, JsonValidationError, OWrites, Reads}
+import validations.CustomValidators.{minLength, nonEmpty, optionalWith, requiredField}
 
 /**
  * Represents the request body structure for creating a new user.
@@ -76,4 +71,7 @@ object CreateUserRequestDto {
         )
       )
   )(CreateUserRequestDto.apply _)
+
+  // Json serialization, it necessary for unit test
+  implicit val writes: OWrites[CreateUserRequestDto] = Json.writes[CreateUserRequestDto]
 }

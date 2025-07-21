@@ -4,6 +4,7 @@ import Exceptions.{AppException, ErrorCode}
 import dtos.request.user.CreateUserRequestDto
 import dtos.response.user.UserResponseDto
 import models.User
+import org.mindrot.jbcrypt.BCrypt
 import play.api.http.Status
 import repositories.UserRepository
 
@@ -27,9 +28,12 @@ class UserService @Inject() (userRepository: UserRepository)(implicit
         } else {
           Future.successful(())
         }
+
+      hashedPassword = BCrypt.hashpw(request.password, BCrypt.gensalt())
+
       user = User(
         email = request.email,
-        password = request.password,
+        password = hashedPassword,
         age = request.age
       )
       savedUser <- userRepository.create(user)
