@@ -13,58 +13,69 @@ import services.UserService
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class UserController @Inject()(
-                                cc: ControllerComponents,
-                                userService: UserService
-                              )(implicit ec: ExecutionContext) extends AbstractController(cc) {
+class UserController @Inject() (
+  cc: ControllerComponents,
+  userService: UserService
+)(implicit ec: ExecutionContext)
+    extends AbstractController(cc) {
 
-  def createUser: Action[JsValue] = Action.async(parse.json) { request =>
-    request.body.validate[CreateUserRequestDto].fold(
-      // Validate request fail
-      errors => {
-        val fieldErrors = errors.flatMap {
-          case (path, validationErrors) =>
-            validationErrors.map(e => FieldError(path.toString().substring(1), e.message))
-        }.toList
-        val response: ApiResponse[Unit] = ApiResponse(
-          success = false,
-          message = "Validation failed",
-          errors = Some(fieldErrors)
-        )
-        Future.successful(BadRequest(Json.toJson(response)))
-        // Note: Json.toJson(response) need import "unitWrites" in WritesExtras to serialize Unit
-      },
-
-      // Validate request success
-      userDto => {
-        userService.createUser(userDto).map { createdUser =>
-          val response = ApiResponse(
-            success = true,
-            message = "User created successfully",
-            data = Some(Json.toJson(createdUser))
-          )
-          Created(Json.toJson(response))
-        }.recover { // recover is a function of Future to resolve exception
-          // recover is a partial function so we need to use Case to solve the exception matching
-          case ex: AppException =>
-            val response = ApiResponse[JsValue](
+  def createUser: Action[JsValue] = Action.async(parse.json) {
+    request =>
+      request.body
+        .validate[CreateUserRequestDto]
+        .fold(
+          // Validate request fail
+          errors => {
+            val fieldErrors = errors.flatMap {
+              case (path, validationErrors) =>
+                validationErrors.map(
+                  e => FieldError(path.toString().substring(1), e.message)
+                )
+            }.toList
+            val response: ApiResponse[Unit] = ApiResponse(
               success = false,
-              message = ex.getMessage
+              message = "Validation failed",
+              errors = Some(fieldErrors)
             )
-            Results.Status(ex.httpStatus)(Json.toJson(response))
-        }
-      }
-    )
+            Future.successful(BadRequest(Json.toJson(response)))
+            // Note: Json.toJson(response) need import "unitWrites" in WritesExtras to serialize Unit
+          },
+
+          // Validate request success
+          userDto => {
+            userService
+              .createUser(userDto)
+              .map {
+                createdUser =>
+                  val response = ApiResponse(
+                    success = true,
+                    message = "User created successfully",
+                    data = Some(Json.toJson(createdUser))
+                  )
+                  Created(Json.toJson(response))
+              }
+              .recover { // recover is a function of Future to resolve exception
+                // recover is a partial function so we need to use Case to solve the exception matching
+                case ex: AppException =>
+                  val response = ApiResponse[JsValue](
+                    success = false,
+                    message = ex.getMessage
+                  )
+                  Results.Status(ex.httpStatus)(Json.toJson(response))
+              }
+          }
+        )
   }
 
   def getListUsers: Action[AnyContent] = Action.async {
-    userService.getAllUsers.map { users =>
-      val response = ApiResponse(
-        success = true,
-        message = "List users fetched",
-        data = Some(Json.toJson(users))
-      )
-      Ok(Json.toJson(response))
+    userService.getAllUsers.map {
+      users =>
+        val response = ApiResponse(
+          success = true,
+          message = "List users fetched",
+          data = Some(Json.toJson(users))
+        )
+        Ok(Json.toJson(response))
     }
   }
 }

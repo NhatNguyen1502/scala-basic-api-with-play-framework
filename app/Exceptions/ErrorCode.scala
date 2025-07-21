@@ -1,10 +1,11 @@
 package Exceptions
 
 /**
- * Represents a structured error code used throughout the application.
- * Each error code consists of an integer identifier and a human-readable message.
+ * Represents a structured error code used throughout the application. Each
+ * error code consists of an integer identifier and a human-readable message.
  */
 sealed trait ErrorCode {
+
   /** A unique integer representing the error code. */
   def code: Int
 

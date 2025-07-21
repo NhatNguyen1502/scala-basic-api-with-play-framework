@@ -8,6 +8,8 @@ lazy val root = (project in file("."))
 
 scalaVersion := "2.13.16"
 
+enablePlugins(ScalafmtPlugin)
+
 libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always
 
 libraryDependencies ++= Seq(

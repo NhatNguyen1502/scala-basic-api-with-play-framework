@@ -6,7 +6,8 @@ import play.api.libs.json._
  * Contains extra implicit Writes that are not provided by Play JSON by default.
  *
  * Currently includes:
- *   - Writes[Unit]: Allows serializing Unit (i.e., no data) as an empty JSON object `{}`.
+ *   - Writes[Unit]: Allows serializing Unit (i.e., no data) as an empty JSON
+ *     object `{}`.
  *
  * This can be useful for generic response wrappers like ApiResponse[Unit],
  * where you want to return success/failure without any actual data.

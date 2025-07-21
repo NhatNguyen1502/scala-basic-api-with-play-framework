@@ -13,5 +13,13 @@ class UserTable(tag: Tag) extends Table[User](tag, "users") {
   def createdAt = column[LocalDateTime]("created_at")
   def updatedAt = column[LocalDateTime]("updated_at")
 
-  def * = (id, email, password, age, isActive, createdAt, updatedAt) <> ((User.apply _).tupled, User.unapply)
+  def * = (
+    id,
+    email,
+    password,
+    age,
+    isActive,
+    createdAt,
+    updatedAt
+  ) <> ((User.apply _).tupled, User.unapply)
 }
