@@ -1,8 +1,8 @@
 package controllers
 
-import Exceptions.ErrorCode
 import dtos.request.user.CreateUserRequestDto
 import dtos.response.user.UserResponseDto
+import exceptions.{AppException, ErrorCode}
 import models.User
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
@@ -10,9 +10,18 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Play.materializer
-import play.api.http.Status.{BAD_REQUEST, CONFLICT, CREATED, NOT_FOUND, OK}
+import play.api.http.Status.{BAD_REQUEST, CREATED, OK}
 import play.api.libs.json.{JsValue, Json}
-import play.api.test.Helpers.{GET, POST, call, contentAsJson, defaultAwaitTimeout, status, stubControllerComponents}
+import play.api.test.Helpers.{
+  GET,
+  POST,
+  await,
+  call,
+  contentAsJson,
+  defaultAwaitTimeout,
+  status,
+  stubControllerComponents
+}
 import play.api.test.{FakeRequest, Injecting}
 import repositories.UserRepository
 import services.UserService
@@ -89,7 +98,7 @@ class UserControllerSpec
       )
     }
 
-    "return conflict 409 when email already exists" in {
+    "throw AppException with EmailAlreadyExists when email already exists" in {
       val requestDto =
         CreateUserRequestDto("duplicate@email.com", "123456", Some(25))
 
@@ -101,12 +110,11 @@ class UserControllerSpec
         .withBody(requestBody)
         .withHeaders("Content-Type" -> "application/json")
 
-      val result = call(controller.createUser, request)
+      val thrown = intercept[AppException] {
+        await(controller.createUser.apply(request))
+      }
 
-      status(result) mustBe CONFLICT
-      (contentAsJson(result) \ "success").as[Boolean] mustBe false
-      (contentAsJson(result) \ "message")
-        .as[String] mustBe ErrorCode.EmailAlreadyExists.message
+      thrown.errorCode mustBe ErrorCode.EmailAlreadyExists
     }
   }
 
@@ -152,9 +160,12 @@ class UserControllerSpec
           updatedAt = LocalDateTime.now()
         )
 
-      when(mockUserRepository.findById(userId)).thenReturn(Future.successful(Some(user)))
+      when(mockUserRepository.findById(userId))
+        .thenReturn(Future.successful(Some(user)))
 
-      val result = controller.getUserById(userId.toString).apply(FakeRequest(GET, s"/api/users/${userId}"))
+      val result = controller
+        .getUserById(userId.toString)
+        .apply(FakeRequest(GET, s"/api/users/${userId}"))
 
       status(result) mustBe OK
 
@@ -164,30 +175,31 @@ class UserControllerSpec
       (json \ "data").as[UserResponseDto] mustBe user
     }
 
-    "return 404 NotFound with user not found" in {
-      val userId = UUID.randomUUID();
+    "throw AppException with UserNotFound when user is not found" in {
+      val userId = UUID.randomUUID()
 
-      when(mockUserRepository.findById(userId)).thenReturn(Future.successful(None))
+      when(mockUserRepository.findById(userId))
+        .thenReturn(Future.successful(None))
 
-      val result = controller.getUserById(userId.toString).apply(FakeRequest(GET, s"/api/users/${userId}"))
+      val request = FakeRequest(GET, s"/api/users/$userId")
 
-      status(result) mustBe NOT_FOUND
+      val thrown = intercept[AppException] {
+        await(controller.getUserById(userId.toString).apply(request))
+      }
 
-      val json = contentAsJson(result)
-      (json \ "success").as[Boolean] mustBe false
-      (json \ "message").as[String] mustBe ("User not found")
+      thrown.errorCode mustBe ErrorCode.UserNotFound
     }
 
-    "return 400 BadRequest with user not found" in {
-      val userId = "NotUUID";
+    "throw AppException with InvalidUUID when user id is not UUID" in {
+      val invalidUserId = "NotUUID"
 
-      val result = controller.getUserById(userId.toString).apply(FakeRequest(GET, s"/api/users/${userId}"))
+      val request = FakeRequest(GET, s"/api/users/$invalidUserId")
 
-      status(result) mustBe BAD_REQUEST
+      val thrown = intercept[AppException] {
+        await(controller.getUserById(invalidUserId).apply(request))
+      }
 
-      val json = contentAsJson(result)
-      (json \ "success").as[Boolean] mustBe false
-      (json \ "message").as[String] mustBe ("Id must be UUID")
+      thrown.errorCode mustBe ErrorCode.InvalidUUID
     }
   }
 }

@@ -1,4 +1,4 @@
-package Exceptions
+package exceptions
 
 /**
  * Represents a structured error code used throughout the application. Each

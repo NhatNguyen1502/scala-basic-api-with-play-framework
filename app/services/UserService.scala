@@ -1,6 +1,6 @@
 package services
 
-import Exceptions.{AppException, ErrorCode}
+import exceptions.{AppException, ErrorCode}
 import dtos.request.user.CreateUserRequestDto
 import dtos.response.user.UserResponseDto
 import models.User

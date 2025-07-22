@@ -1,7 +1,7 @@
 package utils
 
 import play.api.libs.json.{JsPath, JsValue, Json, JsonValidationError}
-import Exceptions.AppException
+import exceptions.AppException
 
 /**
  * Utility object for formatting error messages as JSON. Provides methods to

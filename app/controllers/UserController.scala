@@ -1,6 +1,6 @@
 package controllers
 
-import Exceptions.AppException
+import exceptions.AppException
 import dtos.request.user.CreateUserRequestDto
 import dtos.response.{ApiResponse, FieldError}
 import play.api.libs.json._
@@ -53,15 +53,6 @@ class UserController @Inject() (
                   )
                   Created(Json.toJson(response))
               }
-              .recover { // recover is a function of Future to resolve exception
-                // recover is a partial function so we need to use Case to solve the exception matching
-                case ex: AppException =>
-                  val response = ApiResponse[JsValue](
-                    success = false,
-                    message = ex.getMessage
-                  )
-                  Results.Status(ex.httpStatus)(Json.toJson(response))
-              }
           }
         )
   }
@@ -89,14 +80,6 @@ class UserController @Inject() (
             data = Some(Json.toJson(user))
           )
           Ok(Json.toJson(response))
-      }
-      .recover {
-        case ex: AppException =>
-          val response = ApiResponse[JsValue](
-            success = false,
-            message = ex.getMessage
-          )
-          Results.Status(ex.httpStatus)(Json.toJson(response))
       }
   }
 }
