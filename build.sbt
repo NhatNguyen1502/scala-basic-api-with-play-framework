@@ -4,11 +4,9 @@ organization := "sun"
 version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file("."))
-  .enablePlugins(PlayWeb)
+  .enablePlugins(PlayWeb, ScalafmtPlugin, SbtDotenv)
 
 scalaVersion := "2.13.16"
-
-enablePlugins(ScalafmtPlugin)
 
 coverageExcludedPackages := ".*(dtos|models|repositories|utils|router).*"
 
