@@ -7,6 +7,7 @@ import validations.CustomValidators.{
   minLength,
   nonEmpty,
   optionalWith,
+  regexMatch,
   requiredField
 }
 
@@ -53,26 +54,24 @@ case class CreateUserRequestDto(
 object CreateUserRequestDto {
 
   implicit val reads: Reads[CreateUserRequestDto] = (
-    requiredField(
-      JsPath \ "email",
-      nonEmpty("Email must not be empty")
-        .filter(JsonValidationError("Invalid email format"))(
-          _.matches(EmailRegex)
-        ),
-      "Email is required"
+    (JsPath \ "email").read[String](
+      requiredField("Email is required") keepAnd regexMatch(
+        EmailRegex,
+        "Invalid email format"
+      ) keepAnd nonEmpty("Email is not empty")
     ) and
-      requiredField(
-        JsPath \ "password",
-        nonEmpty("Password must not be empty")
-          .andKeep(minLength(6, "Password must be at least 6 characters")),
-        "Password is required"
+      (JsPath \ "password").read[String](
+        requiredField("Password is required") keepAnd minLength(
+          6,
+          "Password is at least 6 characters"
+        ) keepAnd nonEmpty("Password is not empty")
       ) and
       (JsPath \ "age").read[Option[Int]](
         optionalWith(
           Reads
             .of[Int]
-            .filter(JsonValidationError("Age must be at least 1"))(_ >= 1)
-            .filter(JsonValidationError("Age must be at most 100"))(_ <= 100)
+            .filter(JsonValidationError("Minimum age is 1"))(_ >= 1)
+            .filter(JsonValidationError("Maximum age is 100"))(_ <= 100)
         )
       )
   )(CreateUserRequestDto.apply _)

@@ -1,6 +1,12 @@
 package validations
 
-import play.api.libs.json.{JsError, JsPath, JsonValidationError, Reads}
+import play.api.libs.json.{
+  JsError,
+  JsString,
+  JsSuccess,
+  JsonValidationError,
+  Reads
+}
 
 /**
  * Utility object containing custom Play JSON validators for common input
@@ -60,29 +66,9 @@ object CustomValidators {
   def optionalWith[T](baseReads: Reads[T]): Reads[Option[T]] =
     Reads.optionWithNull[T](baseReads)
 
-  /**
-   * Validates a required field, and provides a custom error message when the
-   * field is missing.
-   *
-   * @param path
-   *   The JSON path of the field to validate.
-   * @param reads
-   *   The base validator for the field value.
-   * @param msg
-   *   The error message to use if the field is missing.
-   * @tparam T
-   *   The type of the field.
-   * @return
-   *   A `Reads[T]` that applies the base validator if present, or fails with
-   *   the custom message.
-   */
-  def requiredField[T](path: JsPath, reads: Reads[T], msg: String): Reads[T] = {
-    path
-      .read[T](reads)
-      .orElse(
-        Reads(
-          _ => JsError(path, JsonValidationError(msg))
-        )
-      )
-  }
+  def requiredField(errorMessage: String): Reads[String] =
+    Reads[String] {
+      case JsString(s) if s.trim.nonEmpty => JsSuccess(s.trim)
+      case _                              => JsError(errorMessage)
+    }
 }

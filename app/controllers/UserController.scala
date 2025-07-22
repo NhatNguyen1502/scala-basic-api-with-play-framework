@@ -1,60 +1,37 @@
 package controllers
 
-import exceptions.AppException
 import dtos.request.user.CreateUserRequestDto
-import dtos.response.{ApiResponse, FieldError}
+import dtos.response.ApiResponse
 import play.api.libs.json._
 import play.api.mvc._
 import services.UserService
-import utils.json.WritesExtras._
+import validations.ValidationHandler
 
 import javax.inject._
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class UserController @Inject() (
   cc: ControllerComponents,
   userService: UserService
 )(implicit ec: ExecutionContext)
-    extends AbstractController(cc) {
+    extends AbstractController(cc)
+    with ValidationHandler {
 
   def createUser: Action[JsValue] = Action.async(parse.json) {
     request =>
-      request.body
-        .validate[CreateUserRequestDto]
-        .fold(
-          // Validate request fail
-          errors => {
-            val fieldErrors = errors.flatMap {
-              case (path, validationErrors) =>
-                validationErrors.map(
-                  e => FieldError(path.toString().substring(1), e.message)
-                )
-            }.toList
-            val response: ApiResponse[Unit] = ApiResponse(
-              success = false,
-              message = "Validation failed",
-              errors = Some(fieldErrors)
-            )
-            Future.successful(BadRequest(Json.toJson(response)))
-            // Note: Json.toJson(response) need import "unitWrites" in WritesExtras to serialize Unit
-          },
-
-          // Validate request success
-          userDto => {
-            userService
-              .createUser(userDto)
-              .map {
-                createdUser =>
-                  val response = ApiResponse(
-                    success = true,
-                    message = "User created successfully",
-                    data = Some(Json.toJson(createdUser))
-                  )
-                  Created(Json.toJson(response))
-              }
+      handleJsonValidation[CreateUserRequestDto](request.body) {
+        userDto =>
+          userService.createUser(userDto).map {
+            createdUser =>
+              val response = ApiResponse(
+                success = true,
+                message = "User created successfully",
+                data = Some(Json.toJson(createdUser))
+              )
+              Created(Json.toJson(response))
           }
-        )
+      }
   }
 
   def getListUsers: Action[AnyContent] = Action.async {
