@@ -51,21 +51,6 @@ object CustomValidators {
   def regexMatch(pattern: String, msg: String): Reads[String] =
     Reads.StringReads.filter(JsonValidationError(msg))(_.matches(pattern))
 
-  /**
-   * Wraps a base `Reads[T]` validator with `optionWithNull` to support optional
-   * fields.
-   *
-   * @param baseReads
-   *   The validator to apply when the value is present.
-   * @tparam T
-   *   The type being validated.
-   * @return
-   *   A `Reads[Option[T]]` that validates when present, allows null or missing
-   *   values.
-   */
-  def optionalWith[T](baseReads: Reads[T]): Reads[Option[T]] =
-    Reads.optionWithNull[T](baseReads)
-
   def requiredField(errorMessage: String): Reads[String] =
     Reads[String] {
       case JsString(s) if s.trim.nonEmpty => JsSuccess(s.trim)

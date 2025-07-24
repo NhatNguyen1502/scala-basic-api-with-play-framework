@@ -48,7 +48,7 @@ class GlobalErrorHandler extends HttpErrorHandler {
 
     val response = ApiResponse[JsValue](
       success = false,
-      message = message + "server"
+      message = message
     )
 
     Future.successful(Results.Status(status)(Json.toJson(response)))

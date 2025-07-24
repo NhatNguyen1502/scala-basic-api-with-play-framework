@@ -1,6 +1,6 @@
 package controllers
 
-import dtos.request.user.CreateUserRequestDto
+import dtos.request.user.{CreateUserRequestDto, UpdateUserRequestDto}
 import dtos.response.ApiResponse
 import play.api.libs.json._
 import play.api.mvc._
@@ -9,6 +9,7 @@ import validations.ValidationHandler
 
 import javax.inject._
 import scala.concurrent.ExecutionContext
+import utils.json.WritesExtras.unitWrites
 
 @Singleton
 class UserController @Inject() (
@@ -57,6 +58,15 @@ class UserController @Inject() (
             data = Some(Json.toJson(user))
           )
           Ok(Json.toJson(response))
+      }
+  }
+
+  def updateUser(id: String): Action[JsValue] = Action.async(parse.json) {
+    request =>
+      handleJsonValidation[UpdateUserRequestDto](request.body) {
+        user => userService.updateUser(id, user).map { _ =>
+          Ok(Json.toJson(ApiResponse[Unit](success = true, message = "User updated successfully")))
+        }
       }
   }
 }

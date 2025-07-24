@@ -36,4 +36,9 @@ object ErrorCode {
     val code = 1004
     val message = "Id must be UUID"
   }
+
+  case object NoFieldToUpdate extends ErrorCode {
+    val code = 1005
+    val message = "No field to update"
+  }
 }

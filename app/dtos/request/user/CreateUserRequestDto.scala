@@ -6,7 +6,6 @@ import play.api.libs.json.{JsPath, Json, JsonValidationError, OWrites, Reads}
 import validations.CustomValidators.{
   minLength,
   nonEmpty,
-  optionalWith,
   regexMatch,
   requiredField
 }
@@ -66,13 +65,11 @@ object CreateUserRequestDto {
           "Password is at least 6 characters"
         ) keepAnd nonEmpty("Password is not empty")
       ) and
-      (JsPath \ "age").read[Option[Int]](
-        optionalWith(
+      (JsPath \ "age").readNullable[Int](
           Reads
             .of[Int]
             .filter(JsonValidationError("Minimum age is 1"))(_ >= 1)
             .filter(JsonValidationError("Maximum age is 100"))(_ <= 100)
-        )
       )
   )(CreateUserRequestDto.apply _)
 

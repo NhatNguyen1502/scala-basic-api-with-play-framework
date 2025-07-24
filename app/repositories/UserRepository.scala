@@ -1,10 +1,12 @@
 package repositories
 
+import dtos.request.user.UpdateUserRequestDto
 import dtos.response.user.UserResponseDto
 import models.{User, UserTable}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
+import java.time.LocalDateTime
 import java.util.UUID
 import javax.inject._
 import scala.concurrent.{ExecutionContext, Future}
@@ -26,6 +28,7 @@ class UserRepository @Inject() (
         _ => user
       ) // convert to Future[User]
   }
+
   def existByEmail(email: String): Future[Boolean] = {
     val query = users.filter(_.email === email).exists.result
     db.run(query)
@@ -52,5 +55,27 @@ class UserRepository @Inject() (
         .result
         .headOption
     ).map(_.map(UserResponseDto.tupled))
+  }
+
+  def update(id: UUID, dto: UpdateUserRequestDto): Future[Int] = {
+    // Build list dynamic update
+    val updateQuery = users.filter(_.id === id)
+
+    val updates = Seq(
+      dto.age.map(a => updateQuery.map(_.age).update(Some(a))),
+      dto.isActive.map(a => updateQuery.map(_.isActive).update(a))
+    ).flatten
+
+    // If no field to update -> return 0
+    if (updates.isEmpty) {
+      Future.successful(-1)
+    } else {
+      // Always update updatedAt
+      val updatedAtAction = updateQuery.map(_.updatedAt).update(LocalDateTime.now())
+
+      // Run all update sql in transaction
+      val actions = DBIO.sequence(updates :+ updatedAtAction).map(_.sum)
+      db.run(actions.transactionally)
+    }
   }
 }

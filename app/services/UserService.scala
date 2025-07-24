@@ -1,8 +1,8 @@
 package services
 
-import exceptions.{AppException, ErrorCode}
-import dtos.request.user.CreateUserRequestDto
+import dtos.request.user.{CreateUserRequestDto, UpdateUserRequestDto}
 import dtos.response.user.UserResponseDto
+import exceptions.{AppException, ErrorCode}
 import models.User
 import org.mindrot.jbcrypt.BCrypt
 import play.api.http.Status
@@ -50,11 +50,34 @@ class UserService @Inject() (userRepository: UserRepository)(implicit
         userRepository.findById(uuid).flatMap {
           case Some(userDto) => Future.successful(userDto)
           case None          =>
+            print(uuid)
             Future.failed(
               new AppException(ErrorCode.UserNotFound, Status.NOT_FOUND)
             )
         }
 
+      case Failure(_) =>
+        Future.failed(
+          new AppException(ErrorCode.InvalidUUID, Status.BAD_REQUEST)
+        )
+    }
+  }
+
+  def updateUser(id: String, user: UpdateUserRequestDto): Future[Any] = {
+    Try(UUID.fromString(id)) match {
+      case Success(uuid) =>
+        userRepository.update(uuid, user).flatMap {
+          case 0 =>
+            Future.failed(
+              new AppException(ErrorCode.UserNotFound, Status.NOT_FOUND)
+            )
+          case -1 =>
+            Future.failed(
+              new AppException(ErrorCode.NoFieldToUpdate, Status.BAD_REQUEST)
+            )
+          case _ =>
+            Future.successful(())
+        }
       case Failure(_) =>
         Future.failed(
           new AppException(ErrorCode.InvalidUUID, Status.BAD_REQUEST)
