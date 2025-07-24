@@ -2,6 +2,7 @@ package repositories
 
 import dtos.request.user.UpdateUserRequestDto
 import dtos.response.user.UserResponseDto
+import models.Tables.users
 import models.{User, UserTable}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
@@ -18,8 +19,6 @@ class UserRepository @Inject() (
     extends HasDatabaseConfigProvider[JdbcProfile] {
 
   import profile.api._
-
-  private val users = TableQuery[UserTable]
 
   def create(user: User): Future[User] = {
     // db is provided by HasDatabaseConfigProvider

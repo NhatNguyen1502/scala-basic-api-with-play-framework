@@ -9,6 +9,7 @@ case class User(
   password: String,
   age: Option[Int] = None,
   isActive: Boolean = true,
+  roleId: Int = 0,
   createdAt: LocalDateTime = LocalDateTime.now(),
   updatedAt: LocalDateTime = LocalDateTime.now()
 )

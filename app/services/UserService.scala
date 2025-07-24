@@ -15,7 +15,10 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
 @Singleton
-class UserService @Inject() (userRepository: UserRepository)(implicit
+class UserService @Inject() (
+  userRepository: UserRepository,
+  roleService: RoleService
+)(implicit
   ec: ExecutionContext
 ) extends UuidSupport {
 
@@ -31,13 +34,15 @@ class UserService @Inject() (userRepository: UserRepository)(implicit
         } else {
           Future.successful(())
         }
+      defaultRole <- roleService.findByName("USER")
 
       hashedPassword = BCrypt.hashpw(request.password, BCrypt.gensalt())
 
       user = User(
         email = request.email,
         password = hashedPassword,
-        age = request.age
+        age = request.age,
+        roleId = defaultRole.id
       )
       savedUser <- userRepository.create(user)
     } yield UserResponseDto.fromUser(savedUser)
