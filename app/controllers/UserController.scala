@@ -69,4 +69,14 @@ class UserController @Inject() (
         }
       }
   }
+
+  def deleteUser(id: String): Action[AnyContent] = Action.async {
+    userService.deleteUser(id).map { _ =>
+      val response = ApiResponse[Unit](
+        success = true,
+        message = "User deleted successfully"
+      )
+      Ok(Json.toJson(response))
+    }
+  }
 }

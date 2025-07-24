@@ -84,4 +84,22 @@ class UserService @Inject() (userRepository: UserRepository)(implicit
         )
     }
   }
+
+  def deleteUser(id: String): Future[Unit] = {
+    Try(UUID.fromString(id)) match {
+      case Success(uuid) =>
+        userRepository.delete(uuid).flatMap {
+          case 0 =>
+            Future.failed(
+              new AppException(ErrorCode.UserNotFound, Status.NOT_FOUND)
+            )
+          case _ =>
+            Future.successful(())
+        }
+      case Failure(_) =>
+        Future.failed(
+          new AppException(ErrorCode.InvalidUUID, Status.BAD_REQUEST)
+        )
+    }
+  }
 }

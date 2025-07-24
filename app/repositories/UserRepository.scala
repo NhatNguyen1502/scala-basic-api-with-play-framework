@@ -78,4 +78,9 @@ class UserRepository @Inject() (
       db.run(actions.transactionally)
     }
   }
+
+  def delete(id: UUID): Future[Int] = {
+    val query = users.filter(_.id === id).delete
+    db.run(query)
+  }
 }
