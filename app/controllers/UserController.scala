@@ -64,19 +64,29 @@ class UserController @Inject() (
   def updateUser(id: String): Action[JsValue] = Action.async(parse.json) {
     request =>
       handleJsonValidation[UpdateUserRequestDto](request.body) {
-        user => userService.updateUser(id, user).map { _ =>
-          Ok(Json.toJson(ApiResponse[Unit](success = true, message = "User updated successfully")))
-        }
+        user =>
+          userService.updateUser(id, user).map {
+            _ =>
+              Ok(
+                Json.toJson(
+                  ApiResponse[Unit](
+                    success = true,
+                    message = "User updated successfully"
+                  )
+                )
+              )
+          }
       }
   }
 
   def deleteUser(id: String): Action[AnyContent] = Action.async {
-    userService.deleteUser(id).map { _ =>
-      val response = ApiResponse[Unit](
-        success = true,
-        message = "User deleted successfully"
-      )
-      Ok(Json.toJson(response))
+    userService.deleteUser(id).map {
+      _ =>
+        val response = ApiResponse[Unit](
+          success = true,
+          message = "User deleted successfully"
+        )
+        Ok(Json.toJson(response))
     }
   }
 }

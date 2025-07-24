@@ -62,8 +62,12 @@ class UserRepository @Inject() (
     val updateQuery = users.filter(_.id === id)
 
     val updates = Seq(
-      dto.age.map(a => updateQuery.map(_.age).update(Some(a))),
-      dto.isActive.map(a => updateQuery.map(_.isActive).update(a))
+      dto.age.map(
+        a => updateQuery.map(_.age).update(Some(a))
+      ),
+      dto.isActive.map(
+        a => updateQuery.map(_.isActive).update(a)
+      )
     ).flatten
 
     // If no field to update -> return 0
@@ -71,7 +75,8 @@ class UserRepository @Inject() (
       Future.successful(-1)
     } else {
       // Always update updatedAt
-      val updatedAtAction = updateQuery.map(_.updatedAt).update(LocalDateTime.now())
+      val updatedAtAction =
+        updateQuery.map(_.updatedAt).update(LocalDateTime.now())
 
       // Run all update sql in transaction
       val actions = DBIO.sequence(updates :+ updatedAtAction).map(_.sum)

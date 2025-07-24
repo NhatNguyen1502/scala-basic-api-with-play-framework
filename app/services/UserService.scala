@@ -7,6 +7,7 @@ import models.User
 import org.mindrot.jbcrypt.BCrypt
 import play.api.http.Status
 import repositories.UserRepository
+import utils.UuidSupport
 
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
@@ -16,7 +17,7 @@ import scala.util.{Failure, Success, Try}
 @Singleton
 class UserService @Inject() (userRepository: UserRepository)(implicit
   ec: ExecutionContext
-) {
+) extends UuidSupport {
 
   def createUser(request: CreateUserRequestDto): Future[UserResponseDto] = {
     // Using for-comprehension to solve async easily
@@ -45,8 +46,8 @@ class UserService @Inject() (userRepository: UserRepository)(implicit
   def getAllUsers: Future[Seq[UserResponseDto]] = userRepository.list()
 
   def findById(id: String): Future[UserResponseDto] = {
-    Try(UUID.fromString(id)) match {
-      case Success(uuid) =>
+    withUuid(id) {
+      uuid =>
         userRepository.findById(uuid).flatMap {
           case Some(userDto) => Future.successful(userDto)
           case None          =>
@@ -55,17 +56,13 @@ class UserService @Inject() (userRepository: UserRepository)(implicit
               new AppException(ErrorCode.UserNotFound, Status.NOT_FOUND)
             )
         }
-
-      case Failure(_) =>
-        Future.failed(
-          new AppException(ErrorCode.InvalidUUID, Status.BAD_REQUEST)
-        )
     }
+
   }
 
   def updateUser(id: String, user: UpdateUserRequestDto): Future[Any] = {
-    Try(UUID.fromString(id)) match {
-      case Success(uuid) =>
+    withUuid(id) {
+      uuid =>
         userRepository.update(uuid, user).flatMap {
           case 0 =>
             Future.failed(
@@ -78,16 +75,12 @@ class UserService @Inject() (userRepository: UserRepository)(implicit
           case _ =>
             Future.successful(())
         }
-      case Failure(_) =>
-        Future.failed(
-          new AppException(ErrorCode.InvalidUUID, Status.BAD_REQUEST)
-        )
     }
   }
 
   def deleteUser(id: String): Future[Unit] = {
-    Try(UUID.fromString(id)) match {
-      case Success(uuid) =>
+    withUuid(id) {
+      uuid =>
         userRepository.delete(uuid).flatMap {
           case 0 =>
             Future.failed(
@@ -96,10 +89,6 @@ class UserService @Inject() (userRepository: UserRepository)(implicit
           case _ =>
             Future.successful(())
         }
-      case Failure(_) =>
-        Future.failed(
-          new AppException(ErrorCode.InvalidUUID, Status.BAD_REQUEST)
-        )
     }
   }
 }
