@@ -1,40 +1,67 @@
-swagger: "2.0"
+openapi: 3.0.3
 info:
   title: "User API"
   description: "API for managing users"
   version: "1.0.0"
 
-consumes:
-  - application/json
-produces:
-  - application/json
+servers:
+  - url: /
+
+tags:
+  - name: User
+  - name: Auth
 
 paths:
+  /api/login:
+    post:
+      tags:
+        - Auth
+      summary: User login to get JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequestDto"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
+
   /api/users:
     get:
       tags:
         - User
       summary: Get all users
+      security:
+        - bearerAuth: []
       responses:
-        200:
+        '200':
           description: List of users
-          schema:
-            $ref: "#/definitions/ApiResponse"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
     post:
       tags:
         - User
       summary: Create a new user
-      parameters:
-        - in: body
-          name: body
-          required: true
-          schema:
-            $ref: "#/definitions/CreateUserRequestDto"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequestDto"
       responses:
-        201:
+        '201':
           description: User created successfully
-          schema:
-            $ref: "#/definitions/ApiResponse"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
 
   /api/users/{id}:
     get:
@@ -45,12 +72,15 @@ paths:
         - name: id
           in: path
           required: true
-          type: string
-      responses:
-        200:
-          description: User details
           schema:
-            $ref: "#/definitions/ApiResponse"
+            type: string
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
     put:
       tags:
         - User
@@ -59,17 +89,21 @@ paths:
         - name: id
           in: path
           required: true
-          type: string
-        - in: body
-          name: body
-          required: true
           schema:
-            $ref: "#/definitions/UpdateUserRequestDto"
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserRequestDto"
       responses:
-        200:
+        '200':
           description: User updated successfully
-          schema:
-            $ref: "#/definitions/ApiResponse"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
     delete:
       tags:
         - User
@@ -78,60 +112,84 @@ paths:
         - name: id
           in: path
           required: true
-          type: string
-      responses:
-        200:
-          description: User deleted successfully
           schema:
-            $ref: "#/definitions/ApiResponse"
+            type: string
+      responses:
+        '200':
+          description: User deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponse"
 
-definitions:
-  CreateUserRequestDto:
-    type: object
-    required:
-      - email
-      - password
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-      age:
-        type: integer
-        format: int32
-        nullable: true
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 
-  UpdateUserRequestDto:
-    type: object
-    properties:
-      age:
-        type: integer
-        format: int32
-        minimum: 1
-        maximum: 100
-      isActive:
-        type: boolean
-        nullable: true
+  schemas:
+    LoginRequestDto:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
 
-  FieldError:
-    type: object
-    properties:
-      field:
-        type: string
-      message:
-        type: string
-        nullable: true
+    CreateUserRequestDto:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        age:
+          type: integer
+          format: int32
+          nullable: true
 
-  ApiResponse:
-    type: object
-    properties:
-      success:
-        type: boolean
-      message:
-        type: string
-      data:
-        type: object
-      errors:
-        type: array
-        items:
-          $ref: "#/definitions/FieldError"
+    UpdateUserRequestDto:
+      type: object
+      properties:
+        age:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        isActive:
+          type: boolean
+          nullable: true
+
+    FieldError:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+          nullable: true
+
+    ApiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldError"
+
+security:
+  - bearerAuth: []
