@@ -41,4 +41,14 @@ object ErrorCode {
     val code = 1005
     val message = "No field to update"
   }
+
+  case object WrongPassword extends ErrorCode {
+    val code = 1006
+    val message = "Wrong password"
+  }
+
+  case object EmailNotFound extends ErrorCode {
+    val code = 1007
+    val message = "Email not found"
+  }
 }

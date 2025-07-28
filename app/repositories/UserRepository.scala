@@ -56,6 +56,18 @@ class UserRepository @Inject() (
     ).map(_.map(UserResponseDto.tupled))
   }
 
+  def findPasswordByEmail(email: String): Future[Option[String]] = {
+    db.run(
+      users
+        .filter(_.email === email)
+        .map(
+          u => (u.password)
+        )
+        .result
+        .headOption
+    )
+  }
+
   def update(id: UUID, dto: UpdateUserRequestDto): Future[Int] = {
     // Build list dynamic update
     val updateQuery = users.filter(_.id === id)

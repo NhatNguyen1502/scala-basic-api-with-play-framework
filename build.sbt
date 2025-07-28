@@ -20,5 +20,9 @@ libraryDependencies ++= Seq(
   "org.postgresql" % "postgresql" % "42.7.7",
   "com.typesafe.play" %% "play-json" % "2.10.7",
   "org.mindrot" % "jbcrypt" % "0.4",
-  "org.webjars" % "swagger-ui" % "5.26.2"
+  "org.webjars" % "swagger-ui" % "5.26.2",
+  "com.github.jwt-scala" %% "jwt-play-json" % "11.0.2"
 )
+
+swaggerDomainNameSpaces := Seq(  "dtos.request.user",
+  "dtos.response")
