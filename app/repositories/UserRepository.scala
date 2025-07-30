@@ -3,7 +3,7 @@ package repositories
 import dtos.request.user.UpdateUserRequestDto
 import dtos.response.user.UserResponseDto
 import models.Tables.users
-import models.{User, UserTable}
+import models.User
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
@@ -54,6 +54,15 @@ class UserRepository @Inject() (
         .result
         .headOption
     ).map(_.map(UserResponseDto.tupled))
+  }
+
+  def findByEmail(email: String): Future[Option[User]] = {
+    db.run(
+      users
+        .filter(_.email === email)
+        .result
+        .headOption
+    )
   }
 
   def findPasswordByEmail(email: String): Future[Option[String]] = {

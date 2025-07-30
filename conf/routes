@@ -17,4 +17,4 @@ DELETE   /api/users/:id  controllers.UserController.deleteUser(id: String)
 GET   /docs/swagger    controllers.SwaggerController.ui
 
 # Auth
-POST    /api/login      controllers.AuthController.login
+POST    /auth/sign-in      controllers.AuthController.login

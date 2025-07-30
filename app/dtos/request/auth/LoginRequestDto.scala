@@ -1,4 +1,4 @@
-package dtos.request.authen
+package dtos.request.auth
 
 import constants.RegexConstants.EmailRegex
 import play.api.libs.functional.syntax.{

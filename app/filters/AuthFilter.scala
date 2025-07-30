@@ -56,14 +56,14 @@ class AuthFilter @Inject() (
     (path == "/api/users" && request.method == "POST") || // temporary use to create an account
     publicPaths.contains(path) ||
     path.startsWith("/docs/swagger") ||
-    path.startsWith("/assets")
+    path.startsWith("/assets") ||
+    path.startsWith("/auth")
   }
 
   /** Extract JWT token from Authorization header */
   private def extractToken(request: RequestHeader): Option[String] =
     request.headers.get("Authorization").flatMap {
       header =>
-        println("header: ", header)
         if (header.startsWith("Bearer ")) Some(header.substring(7)) else None
     }
 }
