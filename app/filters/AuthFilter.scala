@@ -53,7 +53,6 @@ class AuthFilter @Inject() (
   /** Check if request path is in the list of public endpoints */
   private def isPublic(request: RequestHeader): Boolean = {
     val path = request.path
-    (path == "/api/users" && request.method == "POST") || // temporary use to create an account
     publicPaths.contains(path) ||
     path.startsWith("/docs/swagger") ||
     path.startsWith("/assets") ||

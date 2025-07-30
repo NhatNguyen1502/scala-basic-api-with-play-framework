@@ -7,6 +7,11 @@ import slick.jdbc.PostgresProfile.api._
 class UserTable(tag: Tag) extends Table[User](tag, "users") {
   def id = column[UUID]("id", O.PrimaryKey)
   def email = column[String]("email")
+  def firstName = column[String]("first_name")
+  def lastName = column[String]("last_name")
+  def address = column[String]("address")
+  def phoneNumber = column[String]("phone_number")
+
   def password = column[String]("password")
   def age = column[Option[Int]]("age")
   def isActive = column[Boolean]("is_active")
@@ -22,6 +27,10 @@ class UserTable(tag: Tag) extends Table[User](tag, "users") {
   def * = (
     id,
     email,
+    firstName,
+    lastName,
+    address,
+    phoneNumber,
     password,
     age,
     isActive,

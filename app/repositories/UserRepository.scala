@@ -108,4 +108,9 @@ class UserRepository @Inject() (
     val query = users.filter(_.id === id).delete
     db.run(query)
   }
+
+  def hasAnyData: Future[Boolean] = {
+    val query = users.exists
+    db.run(query.result)
+  }
 }

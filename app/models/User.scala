@@ -6,6 +6,10 @@ import java.util.UUID
 case class User(
   id: UUID = UUID.randomUUID(),
   email: String,
+  firstName: String,
+  lastName: String,
+  address: String,
+  phoneNumber: String,
   password: String,
   age: Option[Int] = None,
   isActive: Boolean = true,

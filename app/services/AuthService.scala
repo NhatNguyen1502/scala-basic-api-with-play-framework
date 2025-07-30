@@ -1,6 +1,7 @@
 package services
 
-import dtos.request.auth.LoginRequestDto
+import dtos.request.auth.{LoginRequestDto, SignUpRequestDto}
+import dtos.request.user.CreateUserRequestDto
 import dtos.response.auth.LoginResponseDto
 import dtos.response.user.UserResponseDto
 import exceptions.{AppException, ErrorCode}
@@ -14,6 +15,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class AuthService @Inject() (
   userRepository: UserRepository,
+  userService: UserService,
   jwtService: JwtService
 )(implicit
   ec: ExecutionContext
@@ -40,6 +42,25 @@ class AuthService @Inject() (
         // Email not found
         throw new AppException(ErrorCode.EmailNotFound, Status.UNAUTHORIZED)
     }
+  }
 
+  def signUp(request: SignUpRequestDto): Future[Unit] = {
+    for {
+      hasAnyData <- userRepository.hasAnyData
+      _ <- {
+        val role = if (hasAnyData) "USER" else "ADMIN"
+        val createUserDto = CreateUserRequestDto(
+          email = request.email,
+          password = request.password,
+          firstName = request.firstName,
+          lastName = request.lastName,
+          address = request.address,
+          phoneNumber = request.phoneNumber,
+          role = role,
+          age = None
+        )
+        userService.createUser(createUserDto)
+      }
+    } yield ()
   }
 }

@@ -1,13 +1,12 @@
 package controllers
 
-import dtos.request.auth.LoginRequestDto
+import dtos.request.auth.{LoginRequestDto, SignUpRequestDto}
 import dtos.response.ApiResponse
 import dtos.response.auth.LoginResponseDto
-//import dtos.response.auth.LoginResponseDto._
-
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{AbstractController, Action, ControllerComponents}
 import services.AuthService
+import utils.json.WritesExtras.unitWrites
 import validations.ValidationHandler
 
 import javax.inject.{Inject, Singleton}
@@ -33,6 +32,24 @@ class AuthController @Inject() (
                 data = Some(Json.toJson(loginResponseDto))
               )
               Ok(Json.toJson(response))
+          }
+      }
+  }
+
+  def signUp: Action[JsValue] = Action.async(parse.json) {
+    request =>
+      handleJsonValidation[SignUpRequestDto](request.body) {
+        signUp =>
+          authService.signUp(signUp).map {
+            _ =>
+              Ok(
+                Json.toJson(
+                  ApiResponse[Unit](
+                    success = true,
+                    message = "Sign up successfully"
+                  )
+                )
+              )
           }
       }
   }

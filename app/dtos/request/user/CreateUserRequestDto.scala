@@ -24,6 +24,11 @@ import validations.CustomValidators.{
 case class CreateUserRequestDto(
   email: String,
   password: String,
+  firstName: String,
+  lastName: String,
+  address: String,
+  phoneNumber: String,
+  role: String,
   age: Option[Int]
 )
 
@@ -64,6 +69,33 @@ object CreateUserRequestDto {
           6,
           "Password is at least 6 characters"
         ) keepAnd nonEmpty("Password is not empty")
+      ) and
+      (JsPath \ "firstName").read[String](
+        requiredField("First name is required") keepAnd nonEmpty(
+          "First name is not empty"
+        )
+      ) and
+      (JsPath \ "lastName").read[String](
+        requiredField("Last name is required") keepAnd nonEmpty(
+          "Last name is not empty"
+        )
+      ) and
+      (JsPath \ "address").read[String](
+        requiredField("Address is required") keepAnd nonEmpty(
+          "Address is not empty"
+        )
+      ) and
+      (JsPath \ "phoneNumber").read[String](
+        requiredField("Phone number is required") keepAnd nonEmpty(
+          "Phone number is not empty"
+        )
+      ) and
+      (JsPath \ "role").read[String](
+        requiredField("Role is required") keepAnd regexMatch(
+          "(USER|ADMIN)",
+          "Invalid role"
+        )
+          keepAnd nonEmpty("Role is not empty")
       ) and
       (JsPath \ "age").readNullable[Int](
         Reads

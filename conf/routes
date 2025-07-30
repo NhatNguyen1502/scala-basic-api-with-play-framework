@@ -18,3 +18,4 @@ GET   /docs/swagger    controllers.SwaggerController.ui
 
 # Auth
 POST    /auth/sign-in      controllers.AuthController.login
+POST    /auth/sign-up      controllers.AuthController.signUp

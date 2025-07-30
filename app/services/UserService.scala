@@ -9,10 +9,8 @@ import play.api.http.Status
 import repositories.UserRepository
 import utils.UuidSupport
 
-import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
 
 @Singleton
 class UserService @Inject() (
@@ -22,7 +20,7 @@ class UserService @Inject() (
   ec: ExecutionContext
 ) extends UuidSupport {
 
-  def createUser(request: CreateUserRequestDto): Future[UserResponseDto] = {
+  def createUser(request: CreateUserRequestDto): Future[Unit] = {
     // Using for-comprehension to solve async easily
     for {
       existingUser <- userRepository.existByEmail(request.email)
@@ -34,7 +32,7 @@ class UserService @Inject() (
         } else {
           Future.successful(())
         }
-      defaultRole <- roleService.findByName("USER")
+      defaultRole <- roleService.findByName(request.role)
 
       hashedPassword = BCrypt.hashpw(request.password, BCrypt.gensalt())
 
@@ -42,10 +40,14 @@ class UserService @Inject() (
         email = request.email,
         password = hashedPassword,
         age = request.age,
-        roleId = defaultRole.id
+        roleId = defaultRole.id,
+        firstName = request.firstName,
+        lastName = request.lastName,
+        address = request.address,
+        phoneNumber = request.phoneNumber
       )
-      savedUser <- userRepository.create(user)
-    } yield UserResponseDto.fromUser(savedUser)
+      _ <- userRepository.create(user)
+    } yield None
   }
 
   def getAllUsers: Future[Seq[UserResponseDto]] = userRepository.list()

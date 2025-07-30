@@ -24,11 +24,10 @@ class UserController @Inject() (
       handleJsonValidation[CreateUserRequestDto](request.body) {
         userDto =>
           userService.createUser(userDto).map {
-            createdUser =>
-              val response = ApiResponse(
+            _ =>
+              val response = ApiResponse[Unit](
                 success = true,
                 message = "User created successfully",
-                data = Some(Json.toJson(createdUser))
               )
               Created(Json.toJson(response))
           }
