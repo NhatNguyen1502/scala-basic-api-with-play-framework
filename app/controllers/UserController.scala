@@ -27,7 +27,7 @@ class UserController @Inject() (
             _ =>
               val response = ApiResponse[Unit](
                 success = true,
-                message = "User created successfully",
+                message = "User created successfully"
               )
               Created(Json.toJson(response))
           }
