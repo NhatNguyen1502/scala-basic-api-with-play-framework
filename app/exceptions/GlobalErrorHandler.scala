@@ -43,7 +43,11 @@ class GlobalErrorHandler extends HttpErrorHandler {
   ): Future[Result] = {
     val (status, message) = exception match {
       case ex: AppException => (ex.httpStatus, ex.getMessage)
-      case _ => (Status.INTERNAL_SERVER_ERROR, "Internal server error")
+      case ex2              =>
+        (
+          Status.INTERNAL_SERVER_ERROR,
+          "Internal server error: " + ex2.getMessage
+        )
     }
 
     val response = ApiResponse[JsValue](

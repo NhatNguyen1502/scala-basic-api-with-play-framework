@@ -7,11 +7,11 @@
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
 
 # Users API
-POST    /admin/api/users  controllers.UserController.createUser()
-GET     /api/users  controllers.UserController.getListUsers
-GET     /api/users/:id  controllers.UserController.getUserById(id: String)
-PATCH     /api/users/:id  controllers.UserController.updateUser(id: String)
-DELETE   /api/users/:id  controllers.UserController.deleteUser(id: String)
+POST    /api/admin/users  controllers.UserController.createUser()
+GET     /api/admin/users  controllers.UserController.getListUsers
+GET     /api/admin/users/:id  controllers.UserController.getUserById(id: String)
+PATCH     /api/admin/users/:id  controllers.UserController.updateUser(id: String)
+DELETE   /api/admin/users/:id  controllers.UserController.deleteUser(id: String)
 
 # Swagger UI
 GET   /docs/swagger    controllers.SwaggerController.ui
@@ -19,3 +19,9 @@ GET   /docs/swagger    controllers.SwaggerController.ui
 # Auth
 POST    /auth/sign-in      controllers.AuthController.login
 POST    /auth/sign-up      controllers.AuthController.signUp
+
+# Category API
+POST    /api/admin/categories  controllers.CategoryController.createCategory()
+GET    /api/categories  controllers.CategoryController.getAllCategory()
+PUT    /api/admin/categories/:id  controllers.CategoryController.updateCategory(id: String)
+DELETE    /api/admin/categories/:id  controllers.CategoryController.deleteCategory(id: String)

@@ -51,4 +51,15 @@ object ErrorCode {
     val code = 1007
     val message = "Email not found"
   }
+
+  case object CategoryNotFound extends ErrorCode {
+    val code = 1008
+    val message = "Category not found"
+  }
+
+  case object CategoryNameAlreadyExits extends ErrorCode {
+    val code = 1009
+    val message = "Category name already exits"
+  }
+
 }
