@@ -1,12 +1,12 @@
 package dtos.response.auth
 
-import dtos.response.user.UserResponseDto
+import dtos.response.user.UserWithRoleResponseDto
 import play.api.libs.json.{Format, Json}
 
 case class LoginResponseDto(
   accessToken: String,
   refreshToken: String,
-  user: UserResponseDto
+  user: UserWithRoleResponseDto
 )
 
 object LoginResponseDto {

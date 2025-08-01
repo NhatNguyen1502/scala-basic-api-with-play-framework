@@ -3,7 +3,7 @@ package services
 import dtos.request.auth.{LoginRequestDto, SignUpRequestDto}
 import dtos.request.user.CreateUserRequestDto
 import dtos.response.auth.LoginResponseDto
-import dtos.response.user.UserResponseDto
+import dtos.response.user.UserWithRoleResponseDto
 import exceptions.{AppException, ErrorCode}
 import org.mindrot.jbcrypt.BCrypt
 import play.api.http.Status
@@ -25,14 +25,15 @@ class AuthService @Inject() (
     loginRequestDto: LoginRequestDto
   ): Future[LoginResponseDto] = {
     userRepository.findUserWithRoleByEmail(loginRequestDto.email).map {
-      case Some((user, role))
+      case Some((user, roleName))
           if BCrypt.checkpw(loginRequestDto.password, user.password) =>
-        val accessToken = jwtService.createToken(user.email, role)
+        val accessToken = jwtService.createToken(user.email, roleName)
         val refreshToken = accessToken // temporary refreshToken
+        val userInfo = UserWithRoleResponseDto(user.id, user.email, roleName)
         LoginResponseDto(
           accessToken,
           refreshToken,
-          UserResponseDto.fromUser(user)
+          userInfo
         )
 
       case Some(_) =>
