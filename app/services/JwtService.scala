@@ -5,6 +5,7 @@ import play.api.Configuration
 import play.api.libs.json.Json
 
 import java.time.Clock
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 
 @Singleton
@@ -15,9 +16,10 @@ class JwtService @Inject() (config: Configuration) {
   // Implicit clock for JWT time-based claims (iat, exp)
   implicit val clock: Clock = Clock.systemUTC
 
-  def createToken(email: String, role: String): String = {
+  def createToken(email: String, userId: UUID, role: String): String = {
     val now = clock.instant().getEpochSecond
     val claim = Json.obj(
+      ("userId", userId.toString),
       ("email", email),
       ("role", role),
       ("iat", Some(now)),

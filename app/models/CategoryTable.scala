@@ -14,11 +14,11 @@ class CategoryTable(tag: Tag) extends Table[Category](tag, "categories") {
 
   def updatedAt = column[LocalDateTime]("updated_at")
 
-  def createdBy = column[UUID]("create_by")
+  def createdBy = column[UUID]("created_by")
 
-  def updatedBy = column[UUID]("update_by")
+  def updatedBy = column[UUID]("updated_by")
 
-  def isDeleted = column[Boolean]("is_delete")
+  def isDeleted = column[Boolean]("is_deleted")
 
   def * = (id, name, createdAt, updatedAt, createdBy, updatedBy, isDeleted) <> (
     (Category.apply _).tupled,

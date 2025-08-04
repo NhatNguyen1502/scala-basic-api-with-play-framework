@@ -21,7 +21,10 @@ class CategoryService @Inject() (categoryRepository: CategoryRepository)(
   implicit ec: ExecutionContext
 ) extends UuidSupport {
 
-  def createCategory(request: CreateCategoryRequestDto): Future[Int] = {
+  def createCategory(
+    request: CreateCategoryRequestDto,
+    userId: String
+  ): Future[Int] = {
     categoryRepository.existsByNameAndIsDeleteFalse(request.name).flatMap {
       exists =>
         if (exists) {
@@ -32,14 +35,15 @@ class CategoryService @Inject() (categoryRepository: CategoryRepository)(
             )
           )
         } else {
+          val createBy = UUID.fromString(userId)
           val now = LocalDateTime.now()
           val category = Category(
             id = UUID.randomUUID(),
             name = request.name,
             createdAt = now,
             updatedAt = now,
-            createdBy = UUID.randomUUID(),
-            updatedBy = UUID.randomUUID(),
+            createdBy = createBy,
+            updatedBy = createBy,
             isDeleted = false
           )
           categoryRepository.create(category)
@@ -52,28 +56,32 @@ class CategoryService @Inject() (categoryRepository: CategoryRepository)(
 
   def updateCategory(
     id: String,
-    request: UpdateCategoryRequestDto
+    request: UpdateCategoryRequestDto,
+    userId: String
   ): Future[Any] = {
     withUuid(id) {
       uuid =>
-        categoryRepository.update(uuid, request.name).flatMap {
-          case 0 =>
-            Future.failed(
-              new AppException(ErrorCode.CategoryNotFound, Status.NOT_FOUND)
-            )
-          case _ =>
-            Future.successful(())
-        }
+        categoryRepository
+          .update(uuid, request.name, UUID.fromString(userId))
+          .flatMap {
+            case 0 =>
+              Future.failed(
+                new AppException(ErrorCode.CategoryNotFound, Status.NOT_FOUND)
+              )
+            case _ =>
+              Future.successful(())
+          }
 
     }
   }
 
   def deleteCategory(
-    id: String
+    id: String,
+    userId: String
   ): Future[Any] = {
     withUuid(id) {
       uuid =>
-        categoryRepository.softDelete(uuid).flatMap {
+        categoryRepository.softDelete(uuid, UUID.fromString(userId)).flatMap {
           case 0 =>
             Future.failed(
               new AppException(ErrorCode.CategoryNotFound, Status.NOT_FOUND)

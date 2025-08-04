@@ -5,6 +5,7 @@ import play.api.Configuration
 import play.api.libs.json.Json
 import play.api.libs.streams.Accumulator
 import play.api.mvc._
+import utils.RequestAttrKeys
 
 import javax.inject._
 import scala.jdk.CollectionConverters.CollectionHasAsScala
@@ -78,7 +79,10 @@ class AuthFilter @Inject() (
                 val allowed = allowedRoles(request.path)
                 // Allow access if no rule is defined or if the role is in the allowed list
                 if (allowed.isEmpty || allowed.contains(role)) {
-                  next(request)
+                  // Attach the JWT claim to the request attributes
+                  val enrichedRequest =
+                    request.addAttr(RequestAttrKeys.JwtClaim, claim.content)
+                  next(enrichedRequest)
                 } else {
                   Accumulator.done(
                     Results.Forbidden(

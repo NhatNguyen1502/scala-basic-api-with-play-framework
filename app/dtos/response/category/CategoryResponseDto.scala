@@ -9,7 +9,9 @@ case class CategoryResponseDto(
   id: UUID,
   name: String,
   createdAt: LocalDateTime,
-  updatedAt: LocalDateTime
+  updatedAt: LocalDateTime,
+  createdBy: UUID,
+  updatedBy: UUID
 )
 
 object CategoryResponseDto {
@@ -17,6 +19,6 @@ object CategoryResponseDto {
     Json.format[CategoryResponseDto]
 
   val tupled: (
-    (UUID, String, LocalDateTime, LocalDateTime)
+    (UUID, String, LocalDateTime, LocalDateTime, UUID, UUID)
   ) => CategoryResponseDto = (apply _).tupled
 }

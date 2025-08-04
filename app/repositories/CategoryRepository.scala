@@ -24,7 +24,8 @@ class CategoryRepository @Inject() (
       categories
         .filter(_.isDeleted === false)
         .map(
-          c => (c.id, c.name, c.createdAt, c.updatedAt)
+          c =>
+            (c.id, c.name, c.createdAt, c.updatedAt, c.createdBy, c.updatedBy)
         )
         .sortBy(_._3.desc)
         .result
@@ -52,20 +53,26 @@ class CategoryRepository @Inject() (
 
     db.run(query.result)
   }
-  def update(id: UUID, newName: String): Future[Int] = {
+  def update(id: UUID, newName: String, updatedBy: UUID): Future[Int] = {
     val now = LocalDateTime.now()
     db.run(
       categories
         .filter(_.id === id)
         .map(
-          c => (c.name, c.updatedAt)
+          c => (c.name, c.updatedAt, c.updatedBy)
         )
-        .update((newName, now))
+        .update((newName, now, updatedBy))
     )
   }
 
-  def softDelete(id: UUID): Future[Int] = {
-    val query = categories.filter(_.id === id).map(_.isDeleted).update(true)
+  def softDelete(id: UUID, deletedBy: UUID): Future[Int] = {
+    val now = LocalDateTime.now()
+    val query = categories
+      .filter(_.id === id)
+      .map(
+        c => (c.isDeleted, c.updatedAt, c.updatedBy)
+      )
+      .update(true, now, deletedBy)
     db.run(query)
   }
 }

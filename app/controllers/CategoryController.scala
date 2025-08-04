@@ -1,5 +1,6 @@
 package controllers
 
+import actions.UserAction
 import dtos.request.category.{
   CreateCategoryRequestDto,
   UpdateCategoryRequestDto
@@ -22,16 +23,18 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class CategoryController @Inject() (
   cc: ControllerComponents,
-  categoryService: CategoryService
+  categoryService: CategoryService,
+  userAction: UserAction
 )(implicit ec: ExecutionContext)
     extends AbstractController(cc)
     with ValidationHandler {
 
-  def createCategory: Action[JsValue] = Action.async(parse.json) {
+  def createCategory: Action[JsValue] = userAction.async(parse.json) {
     request =>
+      val userId = request.userId
       handleJsonValidation[CreateCategoryRequestDto](request.body) {
         request =>
-          categoryService.createCategory(request).map {
+          categoryService.createCategory(request, userId).map {
             _ =>
               val response = ApiResponse[Unit](
                 success = true,
@@ -54,24 +57,28 @@ class CategoryController @Inject() (
     }
   }
 
-  def updateCategory(id: String): Action[JsValue] = Action.async(parse.json) {
-    request =>
-      handleJsonValidation[UpdateCategoryRequestDto](request.body) {
-        request =>
-          categoryService.updateCategory(id, request).map {
-            _ =>
-              val response = ApiResponse[Unit](
-                success = true,
-                message = "Category update successfully"
-              )
-              Created(Json.toJson(response))
-          }
-      }
-  }
-
-  def deleteCategory(id: String): Action[AnyContent] = Action.async {
-    categoryService.deleteCategory(id).map {
-      _ => NoContent
+  def updateCategory(id: String): Action[JsValue] =
+    userAction.async(parse.json) {
+      request =>
+        val userId = request.userId
+        handleJsonValidation[UpdateCategoryRequestDto](request.body) {
+          request =>
+            categoryService.updateCategory(id, request, userId).map {
+              _ =>
+                val response = ApiResponse[Unit](
+                  success = true,
+                  message = "Category update successfully"
+                )
+                Created(Json.toJson(response))
+            }
+        }
     }
+
+  def deleteCategory(id: String): Action[AnyContent] = userAction.async {
+    request =>
+      val userId = request.userId
+      categoryService.deleteCategory(id, userId).map {
+        _ => NoContent
+      }
   }
 }

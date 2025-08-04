@@ -27,7 +27,7 @@ class AuthService @Inject() (
     userRepository.findUserWithRoleByEmail(loginRequestDto.email).map {
       case Some((user, roleName))
           if BCrypt.checkpw(loginRequestDto.password, user.password) =>
-        val accessToken = jwtService.createToken(user.email, roleName)
+        val accessToken = jwtService.createToken(user.email, user.id, roleName)
         val refreshToken = accessToken // temporary refreshToken
         val userInfo = UserWithRoleResponseDto(user.id, user.email, roleName)
         LoginResponseDto(
