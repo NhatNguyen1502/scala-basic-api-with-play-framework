@@ -25,3 +25,6 @@ POST    /api/admin/categories  controllers.CategoryController.createCategory()
 GET    /api/categories  controllers.CategoryController.getAllCategory()
 PUT    /api/admin/categories/:id  controllers.CategoryController.updateCategory(id: String)
 DELETE    /api/admin/categories/:id  controllers.CategoryController.deleteCategory(id: String)
+
+# Product API
+POST    /api/admin/products  controllers.ProductController.createProduct()

@@ -21,7 +21,8 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-json" % "2.10.7",
   "org.mindrot" % "jbcrypt" % "0.4",
   "org.webjars" % "swagger-ui" % "5.26.2",
-  "com.github.jwt-scala" %% "jwt-play-json" % "11.0.2"
+  "com.github.jwt-scala" %% "jwt-play-json" % "11.0.2",
+  "com.cloudinary" % "cloudinary-http44" % "1.39.0"
 )
 
 swaggerDomainNameSpaces := Seq(  "dtos.request.user",
