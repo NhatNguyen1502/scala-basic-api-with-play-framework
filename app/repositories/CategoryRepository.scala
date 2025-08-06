@@ -53,6 +53,17 @@ class CategoryRepository @Inject() (
 
     db.run(query.result)
   }
+
+  def existsByIdAndIsDeleteFalse(id: UUID): Future[Boolean] = {
+    val query = categories
+      .filter(
+        c => c.id === id && c.isDeleted === false
+      )
+      .exists
+
+    db.run(query.result)
+  }
+
   def update(id: UUID, newName: String, updatedBy: UUID): Future[Int] = {
     val now = LocalDateTime.now()
     db.run(

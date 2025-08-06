@@ -1,10 +1,13 @@
 package services
 
-import dtos.request.product.CreateProductRequestDto
+import dtos.request.product.{CreateProductRequestDto, UpdateProductRequestDto}
 import dtos.response.PagedResponse
 import dtos.response.product.{CategoryShortDto, ProductWithCategoryResponseDto}
+import exceptions.{AppException, ErrorCode}
 import models.Product
-import repositories.ProductRepository
+import play.api.http.Status
+import repositories.{CategoryRepository, ProductRepository}
+import utils.UUIDUtils.parseUUID
 import utils.UuidSupport
 
 import java.io.File
@@ -15,6 +18,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class ProductService @Inject() (
   productRepository: ProductRepository,
+  categoryRepository: CategoryRepository,
   cloudinaryService: CloudinaryService
 )(implicit ex: ExecutionContext)
     extends UuidSupport {
@@ -78,6 +82,60 @@ class ProductService @Inject() (
           total / size + (if (total % size > 0) 1 else 0)
         )
     }
+  }
+
+  def updateProduct(
+    id: String,
+    dto: UpdateProductRequestDto,
+    imageFile: Option[File],
+    userId: String
+  ): Future[Either[String, Int]] = {
+    val productUUID = parseUUID(id)
+    val userUUID = parseUUID(userId)
+    for {
+      // 1. Check product tồn tại và chưa bị xóa
+      productExists <- productRepository.existsByIdAndIsDeletedFalse(
+        productUUID
+      )
+      _ <-
+        if (!productExists)
+          Future.failed(
+            new AppException(ErrorCode.ProductNotFound, Status.BAD_REQUEST)
+          )
+        else Future.unit
+
+      // 2. Check category nếu có
+      _ <- dto.categoryId match {
+        case Some(catId) =>
+          categoryRepository.existsByIdAndIsDeleteFalse(catId).flatMap {
+            case false =>
+              Future.failed(
+                new AppException(
+                  ErrorCode.CategoryNotFound,
+                  Status.BAD_REQUEST
+                )
+              )
+            case true => Future.unit
+          }
+        case None => Future.unit
+      }
+
+      // 3. Upload ảnh mới nếu có
+      imageUrl <- imageFile match {
+        case Some(file) => cloudinaryService.uploadImage(file)
+        case None       => Future.successful("")
+      }
+
+      // 4. Update product
+      updated <- productRepository.update(
+        productUUID,
+        dto,
+        if (imageUrl.nonEmpty) Some(imageUrl) else None,
+        userUUID
+      )
+    } yield Right(updated)
+  }.recover {
+    case ex: Exception => Left(ex.getMessage)
   }
 
 }

@@ -62,4 +62,9 @@ object ErrorCode {
     val message = "Category name already exits"
   }
 
+  case object ProductNotFound extends ErrorCode {
+    val code = 1010
+    val message = "Product not found"
+  }
+
 }

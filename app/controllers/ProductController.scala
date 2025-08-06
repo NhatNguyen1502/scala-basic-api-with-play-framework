@@ -1,7 +1,7 @@
 package controllers
 
 import actions.UserAction
-import dtos.request.product.CreateProductRequestDto
+import dtos.request.product.{CreateProductRequestDto, UpdateProductRequestDto}
 import dtos.response.ApiResponse
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.Json
@@ -104,6 +104,59 @@ class ProductController @Inject() (
               data = Some(Json.toJson(pagedResult))
             )
             Ok(Json.toJson(response))
+        }
+    }
+
+  def updateProduct(id: String): Action[MultipartFormData[TemporaryFile]] =
+    userAction.async(parse.multipartFormData) {
+      request =>
+        val userId = request.userId
+
+        request.body.file("product") match {
+          case Some(productFile) =>
+            val jsonContent = Using.resource(
+              Source.fromFile(productFile.ref.path.toFile)
+            )(_.mkString)
+            val json = Json.parse(jsonContent)
+
+            handleJsonValidation[UpdateProductRequestDto](json) {
+              updateDto =>
+                val imageFileOpt =
+                  request.body.file("image").map(_.ref.path.toFile)
+
+                productService
+                  .updateProduct(id, updateDto, imageFileOpt, userId)
+                  .map {
+                    case Right(rows) if rows > 0 =>
+                      Ok(
+                        Json.obj(
+                          "success" -> true,
+                          "message" -> "Product updated successfully"
+                        )
+                      )
+                    case Right(_) =>
+                      NotFound(
+                        Json.obj(
+                          "success" -> false,
+                          "message" -> "Product not found"
+                        )
+                      )
+                    case Left(errorMessage) =>
+                      BadRequest(
+                        Json.obj("success" -> false, "message" -> errorMessage)
+                      )
+                  }
+            }
+
+          case None =>
+            Future.successful(
+              BadRequest(
+                Json.obj(
+                  "success" -> false,
+                  "message" -> "Product data is required"
+                )
+              )
+            )
         }
     }
 }
