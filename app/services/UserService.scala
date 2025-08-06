@@ -9,6 +9,7 @@ import play.api.http.Status
 import repositories.UserRepository
 import utils.UuidSupport
 
+import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -96,6 +97,17 @@ class UserService @Inject() (
           case _ =>
             Future.successful(())
         }
+    }
+  }
+
+  def verifyUser(id: UUID): Future[Unit] = {
+    userRepository.verify(id).flatMap {
+      case 0 =>
+        Future.failed(
+          new AppException(ErrorCode.UserNotFound, Status.NOT_FOUND)
+        )
+      case _ =>
+        Future.successful(())
     }
   }
 }

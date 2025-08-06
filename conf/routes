@@ -19,6 +19,7 @@ GET   /docs/swagger    controllers.SwaggerController.ui
 # Auth
 POST    /auth/sign-in      controllers.AuthController.login
 POST    /auth/sign-up      controllers.AuthController.signUp
+GET   /auth/verify      controllers.AuthController.verifyEmail(token: String)
 
 # Category API
 POST    /api/admin/categories  controllers.CategoryController.createCategory()

@@ -56,6 +56,10 @@ class UserRepository @Inject() (
     ).map(_.map(UserResponseDto.tupled))
   }
 
+  def findByEmail(email: String): Future[Option[User]] = {
+    db.run(users.filter(_.email === email).result.headOption)
+  }
+
   def findUserWithRoleByEmail(email: String): Future[Option[(User, String)]] = {
     val query = for {
       u <- users if u.email === email
@@ -112,5 +116,10 @@ class UserRepository @Inject() (
   def hasAnyData: Future[Boolean] = {
     val query = users.exists
     db.run(query.result)
+  }
+
+  def verify(id: UUID): Future[Int] = {
+    val query = users.filter(_.id === id).map(_.isVerified).update(true)
+    db.run(query)
   }
 }

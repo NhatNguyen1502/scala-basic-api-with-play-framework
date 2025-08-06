@@ -22,7 +22,9 @@ libraryDependencies ++= Seq(
   "org.mindrot" % "jbcrypt" % "0.4",
   "org.webjars" % "swagger-ui" % "5.26.2",
   "com.github.jwt-scala" %% "jwt-play-json" % "11.0.2",
-  "com.cloudinary" % "cloudinary-http44" % "1.39.0"
+  "com.cloudinary" % "cloudinary-http44" % "1.39.0",
+  "com.typesafe.play" %% "play-mailer" % "9.1.0",
+  "com.typesafe.play" %% "play-mailer-guice" % "9.1.0",
 )
 
 swaggerDomainNameSpaces := Seq(  "dtos.request.user",

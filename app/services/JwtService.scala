@@ -7,6 +7,7 @@ import play.api.libs.json.Json
 import java.time.Clock
 import java.util.UUID
 import javax.inject.{Inject, Singleton}
+import scala.util.{Failure, Success}
 
 @Singleton
 class JwtService @Inject() (config: Configuration) {
@@ -26,6 +27,18 @@ class JwtService @Inject() (config: Configuration) {
       ("exp", Some(now + expirationTime))
     )
     JwtJson.encode(claim, secretKey, algo)
+  }
+
+  def verifyToken(token: String): Boolean = {
+    JwtJson.isValid(token, secretKey, Seq(algo))
+  }
+
+  def getUserIdFromToken(token: String): Option[UUID] = {
+    JwtJson.decodeJson(token, secretKey, Seq(algo)) match {
+      case Success(claim) =>
+        (claim \ "userId").asOpt[String].map(UUID.fromString)
+      case Failure(_) => None
+    }
   }
 
 }

@@ -11,7 +11,7 @@ class UserTable(tag: Tag) extends Table[User](tag, "users") {
   def lastName = column[String]("last_name")
   def address = column[String]("address")
   def phoneNumber = column[String]("phone_number")
-
+  def isVerified = column[Boolean]("is_verified", O.Default(false))
   def password = column[String]("password")
   def age = column[Option[Int]]("age")
   def isActive = column[Boolean]("is_active")
@@ -34,6 +34,7 @@ class UserTable(tag: Tag) extends Table[User](tag, "users") {
     password,
     age,
     isActive,
+    isVerified,
     roleId,
     createdAt,
     updatedAt

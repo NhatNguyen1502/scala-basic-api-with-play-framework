@@ -16,7 +16,8 @@ import scala.concurrent.{ExecutionContext, Future}
 class AuthService @Inject() (
   userRepository: UserRepository,
   userService: UserService,
-  jwtService: JwtService
+  jwtService: JwtService,
+  mailerService: MailerService
 )(implicit
   ec: ExecutionContext
 ) {
@@ -25,23 +26,25 @@ class AuthService @Inject() (
     loginRequestDto: LoginRequestDto
   ): Future[LoginResponseDto] = {
     userRepository.findUserWithRoleByEmail(loginRequestDto.email).map {
-      case Some((user, roleName))
-          if BCrypt.checkpw(loginRequestDto.password, user.password) =>
-        val accessToken = jwtService.createToken(user.email, user.id, roleName)
-        val refreshToken = accessToken // temporary refreshToken
-        val userInfo = UserWithRoleResponseDto(user.id, user.email, roleName)
-        LoginResponseDto(
-          accessToken,
-          refreshToken,
-          userInfo
-        )
-
-      case Some(_) =>
-        // Wrong Password
-        throw new AppException(ErrorCode.WrongPassword, Status.UNAUTHORIZED)
+      case Some((user, roleName)) =>
+        if (!user.isVerified) {
+          throw new AppException(
+            ErrorCode.EmailNotVerified,
+            Status.UNAUTHORIZED
+          )
+        } else if (!user.isActive) {
+          throw new AppException(ErrorCode.UserInactive, Status.UNAUTHORIZED)
+        } else if (!BCrypt.checkpw(loginRequestDto.password, user.password)) {
+          throw new AppException(ErrorCode.WrongPassword, Status.UNAUTHORIZED)
+        } else {
+          val accessToken =
+            jwtService.createToken(user.email, user.id, roleName)
+          val refreshToken = accessToken // temporary refreshToken
+          val userInfo = UserWithRoleResponseDto(user.id, user.email, roleName)
+          LoginResponseDto(accessToken, refreshToken, userInfo)
+        }
 
       case None =>
-        // Email not found
         throw new AppException(ErrorCode.EmailNotFound, Status.UNAUTHORIZED)
     }
   }
@@ -49,20 +52,47 @@ class AuthService @Inject() (
   def signUp(request: SignUpRequestDto): Future[Unit] = {
     for {
       hasAnyData <- userRepository.hasAnyData
-      _ <- {
-        val role = if (hasAnyData) "USER" else "ADMIN"
-        val createUserDto = CreateUserRequestDto(
-          email = request.email,
-          password = request.password,
-          firstName = request.firstName,
-          lastName = request.lastName,
-          address = request.address,
-          phoneNumber = request.phoneNumber,
-          role = role,
-          age = None
-        )
-        userService.createUser(createUserDto)
+      role = if (hasAnyData) "USER" else "ADMIN"
+      createUserDto = CreateUserRequestDto(
+        email = request.email,
+        password = request.password,
+        firstName = request.firstName,
+        lastName = request.lastName,
+        address = request.address,
+        phoneNumber = request.phoneNumber,
+        role = role,
+        age = None
+      )
+      _ <- userService.createUser(createUserDto)
+      maybeUser <- userRepository.findByEmail(request.email)
+      user <- maybeUser match {
+        case Some(u) => Future.successful(u)
+        case None    =>
+          Future.failed(
+            new AppException(ErrorCode.UserNotFound, Status.NOT_FOUND)
+          )
       }
-    } yield ()
+    } yield {
+      val token = jwtService.createToken(user.email, user.id, role)
+
+      // send verification email asynchronously
+      Future {
+        mailerService.sendVerificationEmail(user.email, token)
+      }(ExecutionContext.global)
+
+      // response immediately without waiting for email to be sent
+      ()
+    }
+  }
+
+  def verifyNewAccount(token: String): Future[Unit] = {
+    if (jwtService.verifyToken(token)) {
+      val userId = jwtService.getUserIdFromToken(token).get
+      userService.verifyUser(userId)
+    } else {
+      Future.failed(
+        new AppException(ErrorCode.InvalidToken, Status.UNAUTHORIZED)
+      )
+    }
   }
 }

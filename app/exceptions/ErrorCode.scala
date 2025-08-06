@@ -67,4 +67,18 @@ object ErrorCode {
     val message = "Product not found"
   }
 
+  case object EmailNotVerified extends ErrorCode {
+    val code = 1011
+    val message = "Email not verified"
+  }
+  case object UserInactive extends ErrorCode {
+    val code = 1012
+    val message = "User is inactive"
+  }
+
+  case object InvalidToken extends ErrorCode {
+    val code = 1013
+    val message = "Invalid token"
+  }
+
 }
