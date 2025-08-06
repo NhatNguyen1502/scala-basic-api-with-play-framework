@@ -32,7 +32,11 @@ class ProductRepository @Inject() (
       .join(categories.filter(_.isDeleted === false))
       .on(_.categoryId === _.id)
 
-    val paged = baseQuery.drop(page * size).take(size)
+    val sorted = baseQuery.sortBy {
+      case (product, _) => product.createdAt.desc
+    }
+
+    val paged = sorted.drop(page * size).take(size)
 
     for {
       total <- db.run(baseQuery.length.result)
@@ -77,6 +81,17 @@ class ProductRepository @Inject() (
         db.run(updateQuery.update(updated))
       case None => Future.successful(0)
     }
+  }
+
+  def softDelete(id: UUID, deletedBy: UUID): Future[Int] = {
+    val now = LocalDateTime.now()
+    val query = products
+      .filter(_.id === id)
+      .map(
+        c => (c.isDeleted, c.updatedAt, c.updatedBy)
+      )
+      .update(true, now, deletedBy)
+    db.run(query)
   }
 
 }

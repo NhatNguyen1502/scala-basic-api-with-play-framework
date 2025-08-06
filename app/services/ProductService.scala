@@ -138,4 +138,14 @@ class ProductService @Inject() (
     case ex: Exception => Left(ex.getMessage)
   }
 
+  def deleteProduct(id: String, userId: String): Future[Int] = {
+    val productUUID = parseUUID(id)
+    val userUUID = parseUUID(userId)
+
+    productRepository.softDelete(productUUID, userUUID).recover {
+      case ex: Exception =>
+        throw new AppException(ErrorCode.ProductNotFound, Status.BAD_REQUEST)
+    }
+  }
+
 }

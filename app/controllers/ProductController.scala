@@ -159,4 +159,12 @@ class ProductController @Inject() (
             )
         }
     }
+
+  def deleteProduct(id: String): Action[AnyContent] = userAction.async {
+    request =>
+      val userId = request.userId
+      productService.deleteProduct(id, userId).map {
+        _ => NoContent
+      }
+  }
 }

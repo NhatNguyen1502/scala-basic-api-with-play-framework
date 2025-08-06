@@ -30,3 +30,4 @@ DELETE    /api/admin/categories/:id  controllers.CategoryController.deleteCatego
 POST    /api/admin/products  controllers.ProductController.createProduct()
 GET     /api/products        controllers.ProductController.getAllProducts(page: Int ?= 0, size: Int ?= 10)
 PUT   /api/admin/products/:id   controllers.ProductController.updateProduct(id: String)
+DELETE  /api/admin/products/:id   controllers.ProductController.deleteProduct(id: String)
