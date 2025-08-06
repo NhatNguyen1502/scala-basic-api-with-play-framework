@@ -1,6 +1,8 @@
 package services
 
 import dtos.request.product.CreateProductRequestDto
+import dtos.response.PagedResponse
+import dtos.response.product.{CategoryShortDto, ProductWithCategoryResponseDto}
 import models.Product
 import repositories.ProductRepository
 import utils.UuidSupport
@@ -43,7 +45,39 @@ class ProductService @Inject() (
         }
 
     }
+  }
 
+  def getAllProducts(
+    page: Int,
+    size: Int
+  ): Future[PagedResponse[ProductWithCategoryResponseDto]] = {
+    productRepository.findAllWithCategory(page, size).map {
+      case (rows, total) =>
+        val dtoList = rows.map {
+          case (p, c) =>
+            ProductWithCategoryResponseDto(
+              id = p.id,
+              name = p.name,
+              description = p.description,
+              imageUrl = p.imageUrl,
+              price = p.price,
+              category = CategoryShortDto(c.id, c.name),
+              quantity = p.quantity,
+              isFeatured = p.isFeatured,
+              createdAt = p.createdAt,
+              updatedAt = p.updatedAt,
+              createdBy = p.createdBy,
+              updatedBy = p.updatedBy
+            )
+        }
+        PagedResponse(
+          dtoList,
+          page,
+          size,
+          total,
+          total / size + (if (total % size > 0) 1 else 0)
+        )
+    }
   }
 
 }

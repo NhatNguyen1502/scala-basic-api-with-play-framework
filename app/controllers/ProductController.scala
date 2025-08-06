@@ -8,6 +8,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{
   AbstractController,
   Action,
+  AnyContent,
   ControllerComponents,
   MultipartFormData
 }
@@ -89,6 +90,20 @@ class ProductController @Inject() (
                 )
               )
             )
+        }
+    }
+
+  def getAllProducts(page: Int, size: Int): Action[AnyContent] =
+    userAction.async {
+      _ =>
+        productService.getAllProducts(page, size).map {
+          pagedResult =>
+            val response = ApiResponse(
+              success = true,
+              message = "Products retrieved successfully",
+              data = Some(Json.toJson(pagedResult))
+            )
+            Ok(Json.toJson(response))
         }
     }
 }

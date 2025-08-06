@@ -1,7 +1,8 @@
 package repositories
 
 import jakarta.inject.Inject
-import models.{Tables, Product}
+import models.Tables.categories
+import models.{Category, Product, Tables}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 
@@ -17,6 +18,23 @@ class ProductRepository @Inject() (
 
   def create(product: Product): Future[Int] = {
     db.run(products += product)
+  }
+
+  def findAllWithCategory(
+    page: Int,
+    size: Int
+  ): Future[(Seq[(Product, Category)], Int)] = {
+    val baseQuery = products
+      .filter(_.isDeleted === false)
+      .join(categories.filter(_.isDeleted === false))
+      .on(_.categoryId === _.id)
+
+    val paged = baseQuery.drop(page * size).take(size)
+
+    for {
+      total <- db.run(baseQuery.length.result)
+      data <- db.run(paged.result)
+    } yield (data, total)
   }
 
 }
